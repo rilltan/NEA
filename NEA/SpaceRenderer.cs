@@ -20,7 +20,8 @@ internal class SpaceRenderer
     private GLVertexArray SphereVertexArray;
     private GLVertexArray GridVertexArray;
     private Camera Cam;
-    private float GridWidth;
+    private float GridWidth = 2f;
+    private int GridSize = 20;
     public bool DrawGrid;
     public SpaceRenderer(int x, int y, int width, int height)
     {
@@ -31,6 +32,8 @@ internal class SpaceRenderer
 
         glEnable(GL_DEPTH_TEST);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         StarShader = new Shader("vertex_shader_star.txt", "fragment_shader_star.txt");
         PlanetShader = new Shader("vertex_shader_planet.txt", "fragment_shader_planet.txt");
         GridShader = new Shader("vertex_shader_grid.txt", "fragment_shader_grid.txt");
@@ -43,7 +46,7 @@ internal class SpaceRenderer
         Mesh sphereMesh = GenerateSphereShadeSmooth(20, 10);
         SphereVertexArray = new GLVertexArray(sphereMesh.GetFloats(), new int[] { 3, 3 });
 
-        GridVertexArray = new GLVertexArray(GenerateGridVertices(10), new int[] { 3 });
+        GridVertexArray = new GLVertexArray(GenerateGridVertices(GridSize), new int[] { 3 });
         DrawGrid = true;
     }
     public void Update()
@@ -59,10 +62,12 @@ internal class SpaceRenderer
             GridShader.Use();
             GridShader.SetMatrix4("view", Cam.GetViewMatrix());
             GridShader.SetMatrix4("projection", Projection);
-            model = Scale(new mat4(1f), new vec3(10f));
+            model = Scale(new mat4(1f), new vec3(GridSize * GridWidth / 2));
             vec3 target = Cam.GetTarget();
-            model = Translate(model, new vec3((float)Math.Floor(target[0]), target[1], (float)Math.Floor(target[2])));
+            model = Translate(model, new vec3(target[0] - (target[0] % GridWidth), target[1], target[2] - (target[2] % GridWidth)));
             GridShader.SetMatrix4("model", model);
+            GridShader.SetVector3("camTargetPos", Cam.GetTarget());
+            GridShader.SetFloat("max", GridSize * GridWidth / 2);
             glDrawArrays(GL_LINES, 0, GridVertexArray.Length);
         }
 
