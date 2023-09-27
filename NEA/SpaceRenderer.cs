@@ -7,22 +7,20 @@ using static OpenGL.GL;
 using static MathsOperations;
 using System.Collections;
 using System.Reflection;
+using NEA;
+using System.ComponentModel;
 
 internal class SpaceRenderer
 {
     private int X, Y, Width, Height;
-    private mat4 Projection;
-    private List<Body> Stars;
-    private List<Body> Planets;
-    private Shader StarShader;
-    private Shader PlanetShader;
-    private Shader GridShader;
-    private GLVertexArray SphereVertexArray;
-    private GLVertexArray GridVertexArray;
-    private Camera Cam;
-    private float GridWidth = 2f;
-    private int GridSize = 20;
-    public bool DrawGrid;
+    private mat4 Projection, View;
+    private List<Body> Stars, Planets;
+    private Shader StarShader, PlanetShader, GridShader;
+    private GLVertexArray SphereVertexArray, GridVertexArray;
+    private float GridWidth;
+    private int GridSize;
+    private bool ShouldDrawGrid;
+    private vec3 GridPos;
     public SpaceRenderer(int x, int y, int width, int height)
     {
         X = x;
@@ -34,9 +32,10 @@ internal class SpaceRenderer
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        StarShader = new Shader("vertex_shader_star.txt", "fragment_shader_star.txt");
-        PlanetShader = new Shader("vertex_shader_planet.txt", "fragment_shader_planet.txt");
-        GridShader = new Shader("vertex_shader_grid.txt", "fragment_shader_grid.txt");
+        
+        StarShader = new Shader(ShaderCode.vertexStar, ShaderCode.fragmentStar);
+        PlanetShader = new Shader(ShaderCode.vertexPlanet, ShaderCode.fragmentPlanet);
+        GridShader = new Shader(ShaderCode.vertexGrid, ShaderCode.fragmentGrid);
 
 
         Projection = Perspective(DegreesToRadians(45f), (float)width / height, 0.1f, 1000f);
@@ -45,28 +44,29 @@ internal class SpaceRenderer
 
         Mesh sphereMesh = GenerateSphereShadeSmooth(20, 10);
         SphereVertexArray = new GLVertexArray(sphereMesh.GetFloats(), new int[] { 3, 3 });
-
-        GridVertexArray = new GLVertexArray(GenerateGridVertices(GridSize), new int[] { 3 });
-        DrawGrid = true;
     }
     public void Update()
     {
+        if (View == null)
+        {
+            throw new Exception("No view matrix has been set");
+        }
         glViewport(X, Y, Width, Height);
 
         mat4 model;
 
-        if (DrawGrid)
+        if (ShouldDrawGrid)
         {
+            GLVertexArray GridVertexArray = new GLVertexArray(GenerateGridVertices(GridSize), new int[] { 3 });
             GridVertexArray.Bind();
 
             GridShader.Use();
-            GridShader.SetMatrix4("view", Cam.GetViewMatrix());
+            GridShader.SetMatrix4("view", View);
             GridShader.SetMatrix4("projection", Projection);
             model = Scale(new mat4(1f), new vec3(GridSize * GridWidth / 2));
-            vec3 target = Cam.GetTarget();
-            model = Translate(model, new vec3(target[0] - (target[0] % GridWidth), target[1], target[2] - (target[2] % GridWidth)));
+            model = Translate(model, new vec3(GridPos[0] - (GridPos[0] % GridWidth), GridPos[1], GridPos[2] - (GridPos[2] % GridWidth)));
             GridShader.SetMatrix4("model", model);
-            GridShader.SetVector3("camTargetPos", Cam.GetTarget());
+            GridShader.SetVector3("gridCentre", GridPos);
             GridShader.SetFloat("max", GridSize * GridWidth / 2);
             glDrawArrays(GL_LINES, 0, GridVertexArray.Length);
         }
@@ -81,7 +81,7 @@ internal class SpaceRenderer
             PlanetShader.SetVector3("lights[" + i + "].pos", Stars[i].Pos);
             PlanetShader.SetVector3("lights[" + i + "].colour", Stars[i].Colour);
         }
-        PlanetShader.SetMatrix4("view", Cam.GetViewMatrix());
+        PlanetShader.SetMatrix4("view", View);
         PlanetShader.SetMatrix4("projection", Projection);
         foreach (Body body in Planets)
         {
@@ -93,7 +93,7 @@ internal class SpaceRenderer
         }
 
         StarShader.Use();
-        StarShader.SetMatrix4("view", Cam.GetViewMatrix());
+        StarShader.SetMatrix4("view", View);
         StarShader.SetMatrix4("projection", Projection);
         foreach (Body body in Stars)
         {
@@ -106,10 +106,7 @@ internal class SpaceRenderer
 
         Stars.Clear();
         Planets.Clear();
-    }
-    public void SetCamera(ref Camera camera)
-    {
-        Cam = camera;
+        ShouldDrawGrid = false;
     }
     public void DrawPlanet(Body planet)
     {
@@ -118,5 +115,16 @@ internal class SpaceRenderer
     public void DrawStar(Body star)
     {
         Stars.Add(star);
+    }
+    public void DrawGrid(vec3 pos, int numberOfRows, float rowWidth)
+    {
+        ShouldDrawGrid = true;
+        GridPos = pos;
+        GridSize = numberOfRows;
+        GridWidth = rowWidth;
+    }
+    public void SetViewMatrix(mat4 view)
+    {
+        View = view;
     }
 }

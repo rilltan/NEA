@@ -5,21 +5,8 @@ using static OpenGL.GL;
 internal unsafe class Shader
 {
     public uint ID;
-    public Shader(string vertexPath, string shaderPath)
+    public Shader(string vertexCode, string fragmentCode)
     {
-        Console.WriteLine(vertexPath + ", " + shaderPath + ":");
-        string vertexCode = "";
-        string fragmentCode = "";
-        try
-        {
-            vertexCode = File.ReadAllText(vertexPath);
-            fragmentCode = File.ReadAllText(shaderPath);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-        }
-
         uint vertex = glCreateShader(GL_VERTEX_SHADER);
         int success = 0;
         glShaderSource(vertex, vertexCode);

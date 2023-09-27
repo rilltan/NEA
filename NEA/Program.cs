@@ -31,7 +31,7 @@ class Program
         //    bodies.Add(new Body(new vec3(rand.NextSingle() * 20 - 10, rand.NextSingle() * 20 - 10, rand.NextSingle() * 20 - 10), new vec3(0f, 0f, 0f), new vec3(rand.NextSingle(), rand.NextSingle(), rand.NextSingle()), 100f));
         //}
         bodies.Add(new Body(new vec3(0f, 0f, 0f), new vec3(1f, 0f, 0f), new vec3(1f, 1f, 1f), 1000f, true));
-        bodies.Add(new Body(new vec3(10f, 0f, 0f), new vec3(0f, 0f, 3f), new vec3(0.2f, 1f, 1f), 100f));
+        bodies.Add(new Body(new vec3(9f, 0f, 0f), new vec3(0f, 0f, 3f), new vec3(0.2f, 1f, 1f), 100f));
         bodies.Add(new Body(new vec3(-7f, 0f, 0f), new vec3(0f, 0f, -3f), new vec3(0.8f, 0.1f, 0.2f), 100f));
         bodies.Add(new Body(new vec3(0f, 0f, 7f), new vec3(-3f, 0f, 0f), new vec3(0.1f, 1f, 1f), 100f));
         bodies.Add(new Body(new vec3(0f, 0f, -7f), new vec3(3f, 0f, 0f), new vec3(0.8f, 0.2f, 0.1f), 100f));
@@ -53,9 +53,9 @@ class Program
 
         Camera camera = new Camera(new vec3(0, 0, 0), 0, DegreesToRadians(89), 20, 0.2f, 0.001f);
         Glfw.SetScrollCallback(window, new MouseCallback(camera.ChangeRadius));
-        renderer.SetCamera(ref camera);
 
-        Body focussedBody = bodies[1];
+
+        int focussedBodyIndex = 0;
         float timeValue = (float)Glfw.Time;
         float lastTimeValue;
         float deltaTime;
@@ -73,8 +73,13 @@ class Program
             if (deltaTime > 0.1) deltaTime = 0;
 
             if (Glfw.GetKey(window, Keys.Escape) == InputState.Press) Glfw.SetWindowShouldClose(window, true);
+            if (Glfw.GetKey(window, Keys.Left) == InputState.Press)
+            {
+                focussedBodyIndex--;
+                if (focussedBodyIndex < 0) focussedBodyIndex = bodies.Count - 1;
+            }
 
-            camera.ChangeTarget(focussedBody.Pos);
+            camera.ChangeTarget(bodies[focussedBodyIndex].Pos);
             lastCursorX = cursorX;
             lastCursorY = cursorY;
             Glfw.GetCursorPosition(window, out cursorX, out cursorY);
@@ -100,11 +105,13 @@ class Program
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+            renderer.SetViewMatrix(camera.GetViewMatrix());
             foreach (Body body in bodies)
             {
                 if (body.IsStar) renderer.DrawStar(body);
                 else renderer.DrawPlanet(body);
             }
+            renderer.DrawGrid(camera.GetTarget(), 30, 2f);
             renderer.Update();
 
             Glfw.SwapBuffers(window);
