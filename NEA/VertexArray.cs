@@ -5,14 +5,15 @@ using static OpenGL.GL;
 internal class GLVertexArray
 {
     private uint vaoID;
+    private uint vboID;
     public int Length { get; }
     public GLVertexArray(float[] vertices, int[] attributeLengths)
     {
         Length = vertices.Length / attributeLengths.Sum();
         vaoID = glGenVertexArray();
-        uint vbo = glGenBuffer();
+        vboID = glGenBuffer();
         glBindVertexArray(vaoID);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vboID);
         unsafe
         {
             fixed (float* ptr = &vertices[0])
@@ -31,5 +32,10 @@ internal class GLVertexArray
     public void Bind()
     {
         glBindVertexArray(vaoID);
+    }
+    public void Delete()
+    {
+        glDeleteVertexArray(vaoID);
+        glDeleteBuffer(vboID);
     }
 }

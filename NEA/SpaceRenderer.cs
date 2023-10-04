@@ -14,9 +14,9 @@ internal class SpaceRenderer
 {
     private int X, Y, Width, Height;
     private mat4 Projection, View;
-    private List<Body> Stars, Planets;
-    private Shader StarShader, PlanetShader, GridShader;
-    private GLVertexArray SphereVertexArray, GridVertexArray;
+    private List<Body> Stars, Planets, Paths;
+    private Shader StarShader, PlanetShader, GridShader, PathShader;
+    private GLVertexArray SphereVertexArray;
     private float GridWidth;
     private int GridSize;
     private bool ShouldDrawGrid;
@@ -36,11 +36,13 @@ internal class SpaceRenderer
         StarShader = new Shader(ShaderCode.vertexStar, ShaderCode.fragmentStar);
         PlanetShader = new Shader(ShaderCode.vertexPlanet, ShaderCode.fragmentPlanet);
         GridShader = new Shader(ShaderCode.vertexGrid, ShaderCode.fragmentGrid);
+        PathShader = new Shader(ShaderCode.vertexGrid, ShaderCode.fragmentPath);
 
 
         Projection = Perspective(DegreesToRadians(45f), (float)width / height, 0.1f, 1000f);
         Stars = new List<Body>();
         Planets = new List<Body>();
+        Paths = new List<Body>();
 
         Mesh sphereMesh = GenerateSphereShadeSmooth(20, 10);
         SphereVertexArray = new GLVertexArray(sphereMesh.GetFloats(), new int[] { 3, 3 });
@@ -64,13 +66,37 @@ internal class SpaceRenderer
             GridShader.SetMatrix4("view", View);
             GridShader.SetMatrix4("projection", Projection);
             model = Scale(new mat4(1f), new vec3(GridSize * GridWidth / 2));
-            model = Translate(model, new vec3(GridPos[0] - (GridPos[0] % GridWidth), GridPos[1], GridPos[2] - (GridPos[2] % GridWidth)));
+            model = Translate(model, new vec3(GridPos[0] - (GridPos[0] % GridWidth), 0f, GridPos[2] - (GridPos[2] % GridWidth)));
             GridShader.SetMatrix4("model", model);
             GridShader.SetVector3("gridCentre", GridPos);
             GridShader.SetFloat("max", GridSize * GridWidth / 2);
             glDrawArrays(GL_LINES, 0, GridVertexArray.Length);
+
+            GridVertexArray.Delete();
         }
 
+        GLVertexArray PathVertexArray;
+        foreach (Body body in Paths)
+        {
+            float[] pathVertices = new float[body.Path.Count * 3];
+            for (int i = 0; i < body.Path.Count; i++)
+            {
+                pathVertices[i * 3] = body.Path[i][0];
+                pathVertices[i * 3 + 1] = body.Path[i][1];
+                pathVertices[i * 3 + 2] = body.Path[i][2];
+                //Console.WriteLine(pathVertices[i]);
+            }
+            PathVertexArray  = new GLVertexArray(pathVertices, new int[] { 3 });
+            PathVertexArray.Bind();
+            PathShader.Use();
+            PathShader.SetMatrix4("view", View);
+            PathShader.SetMatrix4("projection", Projection);
+            PathShader.SetMatrix4("model", new mat4(1.0f));
+            PathShader.SetVector3("colour", new vec3(body.Colour[0] / 2, body.Colour[1] / 2, body.Colour[2] / 2));
+            glDrawArrays(GL_LINE_STRIP, 0, PathVertexArray.Length);
+
+            PathVertexArray.Delete();
+        }
 
         SphereVertexArray.Bind();
 
@@ -106,6 +132,7 @@ internal class SpaceRenderer
 
         Stars.Clear();
         Planets.Clear();
+        Paths.Clear();
         ShouldDrawGrid = false;
     }
     public void DrawPlanet(Body planet)
@@ -115,6 +142,10 @@ internal class SpaceRenderer
     public void DrawStar(Body star)
     {
         Stars.Add(star);
+    }
+    public void DrawPath(Body body)
+    {
+        if (body.Path.Count != 0) Paths.Add(body);
     }
     public void DrawGrid(vec3 pos, int numberOfRows, float rowWidth)
     {

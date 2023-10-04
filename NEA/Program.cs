@@ -30,25 +30,25 @@ class Program
         //{
         //    bodies.Add(new Body(new vec3(rand.NextSingle() * 20 - 10, rand.NextSingle() * 20 - 10, rand.NextSingle() * 20 - 10), new vec3(0f, 0f, 0f), new vec3(rand.NextSingle(), rand.NextSingle(), rand.NextSingle()), 100f));
         //}
-        bodies.Add(new Body(new vec3(0f, 0f, 0f), new vec3(1f, 0f, 0f), new vec3(1f, 1f, 1f), 1000f, true));
-        bodies.Add(new Body(new vec3(9f, 0f, 0f), new vec3(0f, 0f, 3f), new vec3(0.2f, 1f, 1f), 100f));
-        bodies.Add(new Body(new vec3(-7f, 0f, 0f), new vec3(0f, 0f, -3f), new vec3(0.8f, 0.1f, 0.2f), 100f));
-        bodies.Add(new Body(new vec3(0f, 0f, 7f), new vec3(-3f, 0f, 0f), new vec3(0.1f, 1f, 1f), 100f));
-        bodies.Add(new Body(new vec3(0f, 0f, -7f), new vec3(3f, 0f, 0f), new vec3(0.8f, 0.2f, 0.1f), 100f));
+        bodies.Add(new Body(new vec3(0f, 1f, 0f), new vec3(1f, -0.1f, 0f), new vec3(1f, 1f, 1f), 1000f, true));
+        bodies.Add(new Body(new vec3(-6f, 1f, 0f), new vec3(0f, 1f, 3f), new vec3(0.2f, 1f, 1f), 100f));
+        //bodies.Add(new Body(new vec3(7f, 0f, 0f), new vec3(0f, 0f, -3f), new vec3(0.8f, 0.1f, 0.2f), 100f));
+        //bodies.Add(new Body(new vec3(0f, 0f, 7f), new vec3(-3f, 0f, 0f), new vec3(0.1f, 1f, 1f), 100f));
+        //bodies.Add(new Body(new vec3(0f, 0f, -7f), new vec3(3f, 0f, 0f), new vec3(0.8f, 0.2f, 0.1f), 100f));
 
         #region texture
-        float[] textureCoords = { 0f, 0f, 1f, 0f, 0.5f, 1f };
-        Bitmap textureBitmap = new Bitmap(textureFile);
-        textureBitmap.RotateFlip(RotateFlipType.RotateNoneFlipY);
-        int width = textureBitmap.Width;
-        int height = textureBitmap.Height;
-        BitmapData textureData = textureBitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+        //float[] textureCoords = { 0f, 0f, 1f, 0f, 0.5f, 1f };
+        //Bitmap textureBitmap = new Bitmap(textureFile);
+        //textureBitmap.RotateFlip(RotateFlipType.RotateNoneFlipY);
+        //int width = textureBitmap.Width;
+        //int height = textureBitmap.Height;
+        //BitmapData textureData = textureBitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
 
-        uint texture = glGenTexture();
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, textureData.Scan0);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        textureBitmap.UnlockBits(textureData);
+        //uint texture = glGenTexture();
+        //glBindTexture(GL_TEXTURE_2D, texture);
+        //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, textureData.Scan0);
+        //glGenerateMipmap(GL_TEXTURE_2D);
+        //textureBitmap.UnlockBits(textureData);
         #endregion
 
         Camera camera = new Camera(new vec3(0, 0, 0), 0, DegreesToRadians(89), 20, 0.2f, 0.001f);
@@ -56,6 +56,7 @@ class Program
 
 
         int focussedBodyIndex = 0;
+        int pathUpdate = 0;
         float timeValue = (float)Glfw.Time;
         float lastTimeValue;
         float deltaTime;
@@ -95,7 +96,7 @@ class Program
                 Glfw.SetCursorPosition(window, screenWidth / 2, screenHeight / 2);
             }
 
-            foreach (Body body in bodies) body.UpdatePos(deltaTime * 2);
+            foreach (Body body in bodies) { body.UpdatePos(deltaTime * 2); if (pathUpdate == 1) body.UpdatePath(); }
             foreach (Body body in bodies) body.UpdateVelAndAcc(ref bodies, deltaTime * 2);
             collisions.Clear();
             foreach (Body body in bodies) collisions.Add(body.GetCollidingBody(ref bodies));
@@ -110,9 +111,16 @@ class Program
             {
                 if (body.IsStar) renderer.DrawStar(body);
                 else renderer.DrawPlanet(body);
+                renderer.DrawPath(body);
             }
             renderer.DrawGrid(camera.GetTarget(), 30, 2f);
             renderer.Update();
+
+            if (pathUpdate == 100)
+            {
+                pathUpdate = 0;
+            }
+            pathUpdate++;
 
             Glfw.SwapBuffers(window);
             Glfw.PollEvents();

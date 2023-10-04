@@ -135,6 +135,20 @@ void main()
     FragColour = vec4(0.3f, 0.3f, 0.3f, 1-distance/max);
 }</value>
   </data>
+  <data name="fragmentPath" xml:space="preserve">
+    <value>#version 330 core
+
+out vec4 FragColour;
+
+in vec3 fragPos;
+
+uniform vec3 colour;
+
+void main()
+{
+    FragColour = vec4(colour, 1.0f);
+}</value>
+  </data>
   <data name="fragmentPlanet" xml:space="preserve">
     <value>#version 330 core
 

@@ -87,6 +87,26 @@ namespace NEA {
         /// <summary>
         ///   Looks up a localized string similar to #version 330 core
         ///
+        ///out vec4 FragColour;
+        ///
+        ///in vec3 fragPos;
+        ///
+        ///uniform vec3 colour;
+        ///
+        ///void main()
+        ///{
+        ///    FragColour = vec4(colour, 1.0f);
+        ///}.
+        /// </summary>
+        internal static string fragmentPath {
+            get {
+                return ResourceManager.GetString("fragmentPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to #version 330 core
+        ///
         ///struct Light {
         ///    vec3 pos;
         ///    vec3 colour;

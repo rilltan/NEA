@@ -16,6 +16,7 @@ internal class Body
     public float Mass { get; }
     public bool IsStar { get; }
     public float Radius { get { return (float)Math.Cbrt(Mass) / 4.6416f; } }
+    public List<vec3> Path { get; }
     private vec3 Vel;
     private vec3 Acc;
     public Body(vec3 pos, vec3 vel, vec3 colour, float mass, bool isStar = false)
@@ -28,10 +29,15 @@ internal class Body
         IsStar = isStar;
         id = nextId;
         nextId++;
+        Path = new List<vec3>();
     }
     public void UpdatePos(float deltaTime)
     {
         for (int i = 0; i < 3; i++) Pos[i] += Vel[i]*deltaTime + 0.5f*Acc[i]*deltaTime*deltaTime;
+    }
+    public void UpdatePath()
+    {
+        Path.Add(new vec3(Pos));
     }
     public void UpdateVelAndAcc(ref List<Body> bodies, float deltaTime)
     {
