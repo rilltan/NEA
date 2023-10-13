@@ -55,6 +55,9 @@ internal class SpaceRenderer
         }
         glViewport(X, Y, Width, Height);
 
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         mat4 model;
 
         if (ShouldDrawGrid)
@@ -84,7 +87,6 @@ internal class SpaceRenderer
                 pathVertices[i * 3] = body.Path[i][0];
                 pathVertices[i * 3 + 1] = body.Path[i][1];
                 pathVertices[i * 3 + 2] = body.Path[i][2];
-                //Console.WriteLine(pathVertices[i]);
             }
             PathVertexArray  = new GLVertexArray(pathVertices, new int[] { 3 });
             PathVertexArray.Bind();
