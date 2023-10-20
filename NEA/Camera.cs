@@ -36,7 +36,7 @@ internal class Camera
 
         UpdateVectors();
     }
-    public void ChangeRadius(IntPtr window, double x, double y)
+    public void ChangeRadius(double x, double y)
     {
         if (y <= -1)
         {
