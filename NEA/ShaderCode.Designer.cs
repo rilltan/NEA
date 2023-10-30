@@ -158,6 +158,27 @@ namespace NEA {
         /// <summary>
         ///   Looks up a localized string similar to #version 330 core
         ///
+        ///out vec4 FragColour;
+        ///
+        ///in vec4 colour;
+        ///in vec2 texCoord;
+        ///
+        ///uniform sampler2D ourTexture;
+        ///
+        ///void main()
+        ///{
+        ///  FragColour = texture(ourTexture, texCoord) * colour;
+        ///}.
+        /// </summary>
+        internal static string fragmentUI {
+            get {
+                return ResourceManager.GetString("fragmentUI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to #version 330 core
+        ///
         ///layout (location = 0) in vec3 aPos;
         ///
         ///out vec3 fragPos;
@@ -221,6 +242,29 @@ namespace NEA {
         internal static string vertexStar {
             get {
                 return ResourceManager.GetString("vertexStar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to #version 330 core
+        ///
+        ///layout (location = 0) in vec2 aPos;
+        ///layout (location = 1) in vec2 aTexCoord;
+        ///layout (location = 2) in vec4 colour;
+        ///
+        ///out vec4 ColourOut;
+        ///out vec2 TexCoordOut;
+        ///
+        ///void main()
+        ///{
+        ///  gl_Position = vec4(aPos, 0.0f, 1.0f);
+        ///  ColourOut = colour;
+        ///  TexCoordOut = aTexCoord;
+        ///}.
+        /// </summary>
+        internal static string vertexUI {
+            get {
+                return ResourceManager.GetString("vertexUI", resourceCulture);
             }
         }
     }

@@ -21,7 +21,7 @@ class Program
         Window window = Glfw.CreateWindow(screenWidth, screenHeight, TITLE, GLFW.Monitor.None, GLFW.Window.None);
         Glfw.MakeContextCurrent(window);
         Import(Glfw.GetProcAddress);
-
+        
         Simulation sim = new Simulation(ref window, screenWidth, screenHeight);
 
         #region texture

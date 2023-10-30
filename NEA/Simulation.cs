@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using static MathsOperations;
+using ImGuiNET;
 
 
 internal class Simulation
@@ -17,6 +18,7 @@ internal class Simulation
     private SpaceRenderer renderer;
     private List<Body> bodies;
     private Camera camera;
+    private ImGuiController controller;
 
     private MouseCallback mouseCallback;
 
@@ -37,9 +39,13 @@ internal class Simulation
         renderer = new SpaceRenderer(0, 0, screenWidth, screenHeight);
         bodies = new List<Body>();
         camera = new Camera(new vec3(0, 0, 0), 0, DegreesToRadians(89), 20, 0.2f, 0.001f);
-        mouseCallback = new MouseCallback(OrbitCamera);
+        mouseCallback = new MouseCallback(OnMouseScroll);
         Glfw.SetScrollCallback(window, mouseCallback);
         collisions = new List<int>();
+
+        var context = ImGui.CreateContext();
+        ImGui.SetCurrentContext(context);
+        controller = new ImGuiController(ref simulationWindow);
 
         currentKeys = new Dictionary<Keys, bool>();
         prevKeys = new Dictionary<Keys, bool>();
@@ -61,6 +67,10 @@ internal class Simulation
         deltaTime = currentTime - prevTime;
         if (deltaTime > 0.1) deltaTime = 0;
 
+        controller.NewFrame();
+        controller.ProcessEvent();
+        ImGui.NewFrame();
+
         ProcessKeyboardInput();
 
         ProcessMouseInput();
@@ -69,10 +79,10 @@ internal class Simulation
 
         foreach (Body body in bodies)
         {
-            body.UpdatePos(deltaTime * 5);
-            if (frameNumber % 100 == 1) body.UpdatePath();
+            body.UpdatePos(deltaTime * 2);
+            if (frameNumber % 60 == 1) body.UpdatePath();
         }
-        foreach (Body body in bodies) body.UpdateVelAndAcc(ref bodies, deltaTime * 5);
+        foreach (Body body in bodies) body.UpdateVelAndAcc(ref bodies, deltaTime * 2);
         collisions.Clear();
         foreach (Body body in bodies) collisions.Add(body.GetCollidingBody(ref bodies));
         bodies.RemoveAll(body => collisions.Contains(body.id));
@@ -87,14 +97,21 @@ internal class Simulation
         renderer.DrawGrid(camera.GetTarget(), 30, 2f);
         renderer.Update();
 
+        if (ImGui.Button("Click me!")) Console.WriteLine("epic");
+        ImGui.Button("number");
+
+        ImGui.Render();
+        controller.Render(ImGui.GetDrawData());
+
         frameNumber++;
         prevTime = currentTime;
         Glfw.SwapBuffers(window);
         Glfw.PollEvents();
     }
-    private void OrbitCamera(IntPtr window, double x, double y)
+    private void OnMouseScroll(IntPtr window, double x, double y)
     {
         camera.ChangeRadius(x, y);
+        controller.ImGuiMouseScroll(y);
     }
     private void ProcessKeyboardInput()
     {
@@ -103,12 +120,12 @@ internal class Simulation
             prevKeys[key] = currentKeys[key];
             currentKeys[key] = Glfw.GetKey(window, key) == InputState.Press;
         }
-
+        
         if (currentKeys[Keys.Escape])
         {
             Glfw.SetWindowShouldClose(window, true);
         }
-        if (currentKeys[Keys.Left]&& !prevKeys[Keys.Left])
+        if (currentKeys[Keys.Left] && !prevKeys[Keys.Left])
         {
             focussedBodyIndex--;
             if (focussedBodyIndex < 0) focussedBodyIndex = bodies.Count - 1;
