@@ -278,14 +278,34 @@ internal unsafe class ImGuiController
         if (!g_UnloadAtlas)
         {
             var io = ImGui.GetIO();
-            byte* pixels;
+            IntPtr pixels;
             int width, height, bpp;
             Image image;
             
             io.Fonts.GetTexDataAsRGBA32(out pixels, out width, out height, out bpp);
-            var size = 4*width*height;
+            var size = bpp*width*height;
             image = new Image(width, height, Marshal.AllocHGlobal(size));
-            Buffer.MemoryCopy(pixels, (void*)image.Pixels, size, size);
+            Buffer.MemoryCopy((void*)pixels, (void*)image.Pixels, size, size);
+
+            for (int y = 0; y < 64; y++)
+            {
+                for (int x = 400; x < 512; x++)
+                {
+                    //Marshal.WriteByte(image.Pixels + x * 4 + y * 4 * 512, (byte)255);
+                    //Marshal.WriteByte(image.Pixels + x * 4 + y * 4 * 512 + 1, (byte)255);
+                    //Marshal.WriteByte(image.Pixels + x * 4 + y * 4 * 512 + 2, (byte)0);
+                    //Marshal.WriteByte(image.Pixels + x * 4 + y * 4 * 512 + 3, (byte)(255));
+                    if(Marshal.ReadByte(image.Pixels + x * 4 + y * 4 * 512 + 3) == 255)
+                    {
+                        Console.Write("M");
+                    }
+                    else
+                    {
+                        Console.Write(" ");
+                    }
+                }
+                Console.WriteLine();
+            }
 
             uint texture = glGenTexture();
             glBindTexture(GL_TEXTURE_2D, texture);
@@ -293,7 +313,7 @@ internal unsafe class ImGuiController
             glGenerateMipmap(GL_TEXTURE_2D);
             g_AtlasTexID = texture;
             io.Fonts.TexID = (IntPtr)g_AtlasTexID;
-            Marshal.FreeHGlobal((IntPtr)pixels);
+            Marshal.FreeHGlobal(pixels);
             Marshal.FreeHGlobal(image.Pixels);
             g_UnloadAtlas = true;
         }
@@ -301,7 +321,7 @@ internal unsafe class ImGuiController
 
     public void Render(ImDrawDataPtr draw_data)
     {
-        float[] vertices = new float[draw_data.TotalVtxCount*16];
+        float[] vertices = new float[draw_data.TotalVtxCount*32];
         int vertexCounter = 0;
         //Console.WriteLine(draw_data.TotalVtxCount);
         //Rlgl.rlDisableBackfaceCulling();
@@ -337,14 +357,15 @@ internal unsafe class ImGuiController
 
                         index = cmd_list.IdxBuffer[(int)(j + idx_index)];
                         vertex = cmd_list.VtxBuffer[index];
-                        vertices[vertexCounter * 8] = vertex.pos.X;
-                        vertices[vertexCounter * 8 + 1] = vertex.pos.Y;
+                        vertices[vertexCounter * 8] = vertex.pos.X / draw_data.DisplaySize.X * 2 - 1;
+                        vertices[vertexCounter * 8 + 1] = 1 - vertex.pos.Y / draw_data.DisplaySize.Y * 2;
                         vertices[vertexCounter * 8 + 2] = vertex.uv.X;
                         vertices[vertexCounter * 8 + 3] = vertex.uv.Y;
                         vertices[vertexCounter * 8 + 4] = (float)((byte)(vertex.col >> 0)) / 255f;
                         vertices[vertexCounter * 8 + 5] = (float)((byte)(vertex.col >> 8)) / 255f;
                         vertices[vertexCounter * 8 + 6] = (float)((byte)(vertex.col >> 16)) / 255f;
                         vertices[vertexCounter * 8 + 7] = (float)((byte)(vertex.col >> 24)) / 255f;
+                        Console.WriteLine($"{vertices[vertexCounter * 8 + 2]},{vertices[vertexCounter * 8 + 3]}");
                         vertexCounter++;
                         
                         //DrawTriangleVertex(vertex);
@@ -352,28 +373,30 @@ internal unsafe class ImGuiController
                         index = cmd_list.IdxBuffer[(int)(j + 2 + idx_index)];
                         vertex = cmd_list.VtxBuffer[index];
 
-                        vertices[vertexCounter * 8] = vertex.pos.X;
-                        vertices[vertexCounter * 8 + 1] = vertex.pos.Y;
+                        vertices[vertexCounter * 8] = vertex.pos.X / draw_data.DisplaySize.X * 2 - 1;
+                        vertices[vertexCounter * 8 + 1] = 1 - vertex.pos.Y / draw_data.DisplaySize.Y * 2;
                         vertices[vertexCounter * 8 + 2] = vertex.uv.X;
                         vertices[vertexCounter * 8 + 3] = vertex.uv.Y;
                         vertices[vertexCounter * 8 + 4] = (float)((byte)(vertex.col >> 0)) / 255f;
                         vertices[vertexCounter * 8 + 5] = (float)((byte)(vertex.col >> 8)) / 255f;
                         vertices[vertexCounter * 8 + 6] = (float)((byte)(vertex.col >> 16)) / 255f;
                         vertices[vertexCounter * 8 + 7] = (float)((byte)(vertex.col >> 24)) / 255f;
+                        Console.WriteLine($"{vertices[vertexCounter * 8 + 2]},{vertices[vertexCounter * 8 + 3]}");
                         vertexCounter++;
                         //DrawTriangleVertex(vertex);
 
                         index = cmd_list.IdxBuffer[(int)(j + 1 + idx_index)];
                         vertex = cmd_list.VtxBuffer[index];
 
-                        vertices[vertexCounter * 8] = vertex.pos.X;
-                        vertices[vertexCounter * 8 + 1] = vertex.pos.Y;
+                        vertices[vertexCounter * 8] = vertex.pos.X / draw_data.DisplaySize.X * 2 - 1;
+                        vertices[vertexCounter * 8 + 1] = 1 - vertex.pos.Y / draw_data.DisplaySize.Y * 2;
                         vertices[vertexCounter * 8 + 2] = vertex.uv.X;
                         vertices[vertexCounter * 8 + 3] = vertex.uv.Y;
                         vertices[vertexCounter * 8 + 4] = (float)((byte)(vertex.col >> 0)) / 255f;
                         vertices[vertexCounter * 8 + 5] = (float)((byte)(vertex.col >> 8)) / 255f;
                         vertices[vertexCounter * 8 + 6] = (float)((byte)(vertex.col >> 16)) / 255f;
                         vertices[vertexCounter * 8 + 7] = (float)((byte)(vertex.col >> 24)) / 255f;
+                        Console.WriteLine($"{vertices[vertexCounter * 8 + 2]},{vertices[vertexCounter * 8 + 3]}");
                         vertexCounter++;
                         //DrawTriangleVertex(vertex);
 
@@ -386,16 +409,32 @@ internal unsafe class ImGuiController
                 idx_index += pcmd.ElemCount;
             }
         }
+        //Console.WriteLine($"({draw_data.DisplayPos.X},{draw_data.DisplayPos.Y}) size = {draw_data.DisplaySize.X}x{draw_data.DisplaySize.Y}");
+        //Console.ReadLine();
         //Console.WriteLine(vertexCounter-1);
         //Console.WriteLine(draw_data.TotalVtxCount);
+        int todraw = 0;
         if (draw_data.TotalVtxCount > 0)
         {
+            //for (int x = 20; x < 21; x++)
+            //{
+            //    for (int i = 0; i < 3; i++)
+            //    {
+            //        for (int j = 2; j < 4; j++)
+            //        {
+            //            Console.Write($"{vertices[x*3 * 8 + i * 8 + j]},");
+            //        }
+            //        Console.WriteLine();
+            //    }
+            //    Console.WriteLine();
+            //}
+            
+            Console.WriteLine();
             GLVertexArray UIVertexArray = new GLVertexArray(vertices, new int[] { 2, 2, 4 });
-            Console.Write(UIVertexArray.Length);
             UIVertexArray.Bind();
             UIShader.Use();
             glBindTexture(GL_TEXTURE_2D, (uint)draw_data.CmdLists[0].CmdBuffer[0].TextureId.ToInt32());
-            glDrawArrays(GL_TRIANGLES, 0, UIVertexArray.Length);
+            glDrawArrays(GL_TRIANGLES, todraw, UIVertexArray.Length);
             UIVertexArray.Delete();
         }
 

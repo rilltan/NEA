@@ -160,14 +160,14 @@ namespace NEA {
         ///
         ///out vec4 FragColour;
         ///
-        ///in vec4 colour;
+        ///in vec4 vertexColour;
         ///in vec2 texCoord;
         ///
         ///uniform sampler2D ourTexture;
         ///
         ///void main()
         ///{
-        ///  FragColour = texture(ourTexture, texCoord) * colour;
+        ///  FragColour = texture(ourTexture, texCoord) * vertexColour;
         ///}.
         /// </summary>
         internal static string fragmentUI {
@@ -250,16 +250,16 @@ namespace NEA {
         ///
         ///layout (location = 0) in vec2 aPos;
         ///layout (location = 1) in vec2 aTexCoord;
-        ///layout (location = 2) in vec4 colour;
+        ///layout (location = 2) in vec4 aColour;
         ///
-        ///out vec4 ColourOut;
-        ///out vec2 TexCoordOut;
+        ///out vec4 vertexColour;
+        ///out vec2 texCoord;
         ///
         ///void main()
         ///{
         ///  gl_Position = vec4(aPos, 0.0f, 1.0f);
-        ///  ColourOut = colour;
-        ///  TexCoordOut = aTexCoord;
+        ///  vertexColour = vec4(aColour);
+        ///  texCoord = vec2(aTexCoord);
         ///}.
         /// </summary>
         internal static string vertexUI {
