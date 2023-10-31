@@ -287,26 +287,6 @@ internal unsafe class ImGuiController
             image = new Image(width, height, Marshal.AllocHGlobal(size));
             Buffer.MemoryCopy((void*)pixels, (void*)image.Pixels, size, size);
 
-            for (int y = 0; y < 64; y++)
-            {
-                for (int x = 400; x < 512; x++)
-                {
-                    //Marshal.WriteByte(image.Pixels + x * 4 + y * 4 * 512, (byte)255);
-                    //Marshal.WriteByte(image.Pixels + x * 4 + y * 4 * 512 + 1, (byte)255);
-                    //Marshal.WriteByte(image.Pixels + x * 4 + y * 4 * 512 + 2, (byte)0);
-                    //Marshal.WriteByte(image.Pixels + x * 4 + y * 4 * 512 + 3, (byte)(255));
-                    if(Marshal.ReadByte(image.Pixels + x * 4 + y * 4 * 512 + 3) == 255)
-                    {
-                        Console.Write("M");
-                    }
-                    else
-                    {
-                        Console.Write(" ");
-                    }
-                }
-                Console.WriteLine();
-            }
-
             uint texture = glGenTexture();
             glBindTexture(GL_TEXTURE_2D, texture);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.Width, image.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.Pixels);
@@ -321,10 +301,8 @@ internal unsafe class ImGuiController
 
     public void Render(ImDrawDataPtr draw_data)
     {
-        float[] vertices = new float[draw_data.TotalVtxCount*32];
+        float[] vertices = new float[draw_data.TotalIdxCount * 8];
         int vertexCounter = 0;
-        //Console.WriteLine(draw_data.TotalVtxCount);
-        //Rlgl.rlDisableBackfaceCulling();
         for (int n = 0; n < draw_data.CmdListsCount; n++)
         {
             ImDrawListPtr cmd_list = draw_data.CmdLists[n];
@@ -337,7 +315,6 @@ internal unsafe class ImGuiController
                 var rectY = (int)(pcmd.ClipRect.Y - pos.Y);
                 var rectW = (int)(pcmd.ClipRect.Z - rectX);
                 var rectH = (int)(pcmd.ClipRect.W - rectY);
-                //Raylib.BeginScissorMode(rectX, rectY, rectW, rectH);
                 {
                     var ti = pcmd.TextureId;
                     for (int j = 0; j <= (pcmd.ElemCount - 3); j += 3)
@@ -346,10 +323,6 @@ internal unsafe class ImGuiController
                         {
                             break;
                         }
-                        
-                        //Rlgl.rlPushMatrix();
-                        //Rlgl.rlBegin(DrawMode.TRIANGLES);
-                        //Rlgl.rlSetTexture((uint)ti.ToInt32());
                         
 
                         ImDrawVertPtr vertex;
@@ -365,10 +338,7 @@ internal unsafe class ImGuiController
                         vertices[vertexCounter * 8 + 5] = (float)((byte)(vertex.col >> 8)) / 255f;
                         vertices[vertexCounter * 8 + 6] = (float)((byte)(vertex.col >> 16)) / 255f;
                         vertices[vertexCounter * 8 + 7] = (float)((byte)(vertex.col >> 24)) / 255f;
-                        Console.WriteLine($"{vertices[vertexCounter * 8 + 2]},{vertices[vertexCounter * 8 + 3]}");
                         vertexCounter++;
-                        
-                        //DrawTriangleVertex(vertex);
 
                         index = cmd_list.IdxBuffer[(int)(j + 2 + idx_index)];
                         vertex = cmd_list.VtxBuffer[index];
@@ -381,9 +351,7 @@ internal unsafe class ImGuiController
                         vertices[vertexCounter * 8 + 5] = (float)((byte)(vertex.col >> 8)) / 255f;
                         vertices[vertexCounter * 8 + 6] = (float)((byte)(vertex.col >> 16)) / 255f;
                         vertices[vertexCounter * 8 + 7] = (float)((byte)(vertex.col >> 24)) / 255f;
-                        Console.WriteLine($"{vertices[vertexCounter * 8 + 2]},{vertices[vertexCounter * 8 + 3]}");
                         vertexCounter++;
-                        //DrawTriangleVertex(vertex);
 
                         index = cmd_list.IdxBuffer[(int)(j + 1 + idx_index)];
                         vertex = cmd_list.VtxBuffer[index];
@@ -396,58 +364,29 @@ internal unsafe class ImGuiController
                         vertices[vertexCounter * 8 + 5] = (float)((byte)(vertex.col >> 8)) / 255f;
                         vertices[vertexCounter * 8 + 6] = (float)((byte)(vertex.col >> 16)) / 255f;
                         vertices[vertexCounter * 8 + 7] = (float)((byte)(vertex.col >> 24)) / 255f;
-                        Console.WriteLine($"{vertices[vertexCounter * 8 + 2]},{vertices[vertexCounter * 8 + 3]}");
                         vertexCounter++;
-                        //DrawTriangleVertex(vertex);
-
-                        //Rlgl.rlDisableTexture();
-                        //Rlgl.rlEnd();
-                        //Rlgl.rlPopMatrix();
                     }
                 }
 
                 idx_index += pcmd.ElemCount;
             }
         }
-        //Console.WriteLine($"({draw_data.DisplayPos.X},{draw_data.DisplayPos.Y}) size = {draw_data.DisplaySize.X}x{draw_data.DisplaySize.Y}");
-        //Console.ReadLine();
-        //Console.WriteLine(vertexCounter-1);
-        //Console.WriteLine(draw_data.TotalVtxCount);
-        int todraw = 0;
+        glEnable(GL_BLEND);
+        glBlendEquation(GL_FUNC_ADD);
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        glDisable(GL_CULL_FACE);
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_STENCIL_TEST);
+        glEnable(GL_SCISSOR_TEST);
         if (draw_data.TotalVtxCount > 0)
         {
-            //for (int x = 20; x < 21; x++)
-            //{
-            //    for (int i = 0; i < 3; i++)
-            //    {
-            //        for (int j = 2; j < 4; j++)
-            //        {
-            //            Console.Write($"{vertices[x*3 * 8 + i * 8 + j]},");
-            //        }
-            //        Console.WriteLine();
-            //    }
-            //    Console.WriteLine();
-            //}
-            
-            Console.WriteLine();
             GLVertexArray UIVertexArray = new GLVertexArray(vertices, new int[] { 2, 2, 4 });
             UIVertexArray.Bind();
             UIShader.Use();
             glBindTexture(GL_TEXTURE_2D, (uint)draw_data.CmdLists[0].CmdBuffer[0].TextureId.ToInt32());
-            glDrawArrays(GL_TRIANGLES, todraw, UIVertexArray.Length);
+            glDrawArrays(GL_TRIANGLES, 0, UIVertexArray.Length);
             UIVertexArray.Delete();
         }
-
-        //Raylib.EndScissorMode();
-        //Rlgl.rlEnableBackfaceCulling();
     }
-
-    //void DrawTriangleVertex(ImDrawVertPtr idx_vert)
-    //{
-    //    Color c = new Color((byte)(idx_vert.col >> 0), (byte)(idx_vert.col >> 8), (byte)(idx_vert.col >> 16), (byte)(idx_vert.col >> 24));
-    //    Rlgl.rlColor4ub(c.r, c.g, c.b, c.a);
-    //    Rlgl.rlTexCoord2f(idx_vert.uv.X, idx_vert.uv.Y);
-    //    Rlgl.rlVertex2f(idx_vert.pos.X, idx_vert.pos.Y);
-    //}
 
 }

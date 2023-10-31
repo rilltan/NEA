@@ -27,11 +27,6 @@ internal class SpaceRenderer
         Y = y;
         Width = width;
         Height = height;
-
-        glEnable(GL_DEPTH_TEST);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         
         StarShader = new Shader(ShaderCode.vertexStar, ShaderCode.fragmentStar);
         PlanetShader = new Shader(ShaderCode.vertexPlanet, ShaderCode.fragmentPlanet);
@@ -54,6 +49,13 @@ internal class SpaceRenderer
             throw new Exception("No view matrix has been set");
         }
         glViewport(X, Y, Width, Height);
+
+        glEnable(GL_BLEND);
+        glBlendEquation(GL_FUNC_ADD);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_DEPTH_TEST);
+        glDisable(GL_SCISSOR_TEST);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
