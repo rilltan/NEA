@@ -10,8 +10,7 @@ class Program
     private const string TITLE = "Orbital Simulator";
     static void Main(string[] args)
     {
-        string textureFile = "bongocat.jpg";
-        int screenWidth = 800;
+        int screenWidth = 1200;
         int screenHeight = 800;
         
         Glfw.WindowHint(Hint.ContextVersionMajor, 3);
@@ -21,7 +20,7 @@ class Program
         Window window = Glfw.CreateWindow(screenWidth, screenHeight, TITLE, GLFW.Monitor.None, GLFW.Window.None);
         Glfw.MakeContextCurrent(window);
         Import(Glfw.GetProcAddress);
-        
+
         Simulation sim = new Simulation(ref window, screenWidth, screenHeight);
 
         #region texture

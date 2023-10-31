@@ -18,7 +18,7 @@ internal class Simulation
     private SpaceRenderer renderer;
     private List<Body> bodies;
     private Camera camera;
-    private ImGuiController controller;
+    private ImGuiController UIController;
 
     private MouseCallback mouseCallback;
 
@@ -36,7 +36,7 @@ internal class Simulation
         window = simulationWindow;
         screenWidth = width;
         screenHeight = height;
-        renderer = new SpaceRenderer(0, 0, screenWidth, screenHeight);
+        renderer = new SpaceRenderer(0, 0, 800, screenHeight);
         bodies = new List<Body>();
         camera = new Camera(new vec3(0, 0, 0), 0, DegreesToRadians(89), 20, 0.2f, 0.001f);
         mouseCallback = new MouseCallback(OnMouseScroll);
@@ -45,7 +45,7 @@ internal class Simulation
 
         var context = ImGui.CreateContext();
         ImGui.SetCurrentContext(context);
-        controller = new ImGuiController(ref simulationWindow);
+        UIController = new ImGuiController(ref simulationWindow, screenWidth, screenHeight);
 
         currentKeys = new Dictionary<Keys, bool>();
         prevKeys = new Dictionary<Keys, bool>();
@@ -67,13 +67,15 @@ internal class Simulation
         deltaTime = currentTime - prevTime;
         if (deltaTime > 0.1) deltaTime = 0;
 
-        controller.NewFrame();
-        controller.ProcessEvent();
+        UIController.NewFrame();
+        UIController.ProcessEvent();
         ImGui.NewFrame();
 
         ProcessKeyboardInput();
 
         ProcessMouseInput();
+
+        ProcessUI();
 
         camera.ChangeTarget(bodies[focussedBodyIndex].Pos);
 
@@ -97,11 +99,8 @@ internal class Simulation
         renderer.DrawGrid(camera.GetTarget(), 30, 2f);
         renderer.Update();
 
-        if (ImGui.Button("Click me!")) Console.WriteLine("epic");
-        ImGui.Button("number");
-
         ImGui.Render();
-        controller.Render(ImGui.GetDrawData());
+        UIController.Render(ImGui.GetDrawData());
 
         frameNumber++;
         prevTime = currentTime;
@@ -111,7 +110,7 @@ internal class Simulation
     private void OnMouseScroll(IntPtr window, double x, double y)
     {
         camera.ChangeRadius(x, y);
-        controller.ImGuiMouseScroll(y);
+        UIController.ImGuiMouseScroll(y);
     }
     private void ProcessKeyboardInput()
     {
@@ -159,6 +158,14 @@ internal class Simulation
         {
             Glfw.SetInputMode(window, InputMode.Cursor, (int)CursorMode.Normal);
             Glfw.SetCursorPosition(window, screenWidth / 2, screenHeight / 2);
+        }
+    }
+    private void ProcessUI()
+    {
+        if (ImGui.Button("Next body"))
+        {
+            focussedBodyIndex++;
+            if (focussedBodyIndex >= bodies.Count) focussedBodyIndex = 0;
         }
     }
 }

@@ -24,14 +24,17 @@ internal unsafe class ImGuiController
     private Window window;
     private CharCallback charCallback;
     private Shader UIShader;
+    private int screenWidth, screenHeight;
 
     static double g_Time = 0.0;
     static bool g_UnloadAtlas = false;
     static uint g_AtlasTexID = 0;
 
-    public ImGuiController(ref Window simulationWindow)
+    public ImGuiController(ref Window simulationWindow, int width, int height)
     {
         window = simulationWindow;
+        screenWidth = width;
+        screenHeight = height;
         Init();
     }
     private void Init()
@@ -310,11 +313,6 @@ internal unsafe class ImGuiController
             for (int i = 0; i < cmd_list.CmdBuffer.Size; i++)
             {
                 var pcmd = cmd_list.CmdBuffer[i];
-                var pos = draw_data.DisplayPos;
-                var rectX = (int)(pcmd.ClipRect.X - pos.X);
-                var rectY = (int)(pcmd.ClipRect.Y - pos.Y);
-                var rectW = (int)(pcmd.ClipRect.Z - rectX);
-                var rectH = (int)(pcmd.ClipRect.W - rectY);
                 {
                     var ti = pcmd.TextureId;
                     for (int j = 0; j <= (pcmd.ElemCount - 3); j += 3)
@@ -323,7 +321,6 @@ internal unsafe class ImGuiController
                         {
                             break;
                         }
-                        
 
                         ImDrawVertPtr vertex;
                         ushort index;
@@ -371,6 +368,7 @@ internal unsafe class ImGuiController
                 idx_index += pcmd.ElemCount;
             }
         }
+        glViewport(0, 0, screenWidth, screenHeight);
         glEnable(GL_BLEND);
         glBlendEquation(GL_FUNC_ADD);
         glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
