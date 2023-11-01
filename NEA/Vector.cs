@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -36,7 +35,13 @@ internal class vec3
         data = new float[3];
         for (int i = 0; i < 3; i++) data[i] = vector[i];
     }
-
+    public vec3(System.Numerics.Vector3 vector)
+    {
+        data = new float[3];
+        data[0] = vector.X;
+        data[1] = vector.Y;
+        data[2] = vector.Z;
+    }
     public float this[int i]
     {
         get { return data[i]; }
@@ -45,6 +50,10 @@ internal class vec3
     public float GetMagnitude()
     {
         return (float)Math.Sqrt(data[0] * data[0] + data[1] * data[1] + data[2] * data[2]);
+    }
+    public System.Numerics.Vector3 GetNumericsVector3()
+    {
+        return new System.Numerics.Vector3(data[0], data[1], data[2]);
     }
     public static vec3 operator +(vec3 x, vec3 y)
     {

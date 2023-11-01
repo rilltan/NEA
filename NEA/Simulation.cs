@@ -157,26 +157,36 @@ internal class Simulation
         ImGui.SetNextWindowSize(new System.Numerics.Vector2(400, 800), ImGuiCond.Always);
 
         ImGui.Begin("Controls", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse);
-        ImGui.Text($"Currently focussed body ID: {focussedBody.id}");
-        ImGui.SameLine();
-        if (ImGui.Button("+"))
-        {
-            int currentBodyListIndex = bodies.IndexOf(focussedBody);
-            currentBodyListIndex = (currentBodyListIndex + 1) % bodies.Count;
-            focussedBody = bodies[currentBodyListIndex];
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("-"))
-        {
-            int currentBodyListIndex = bodies.IndexOf(focussedBody);
-            currentBodyListIndex = currentBodyListIndex - 1;
-            if (currentBodyListIndex < 0) currentBodyListIndex = bodies.Count - 1;
-            focussedBody = bodies[currentBodyListIndex];
-        }
-        //if (ImGui.BeginTabBar("tab_bar"))
-        //{
 
-        //}
+        string[] bodyNames = new string[bodies.Count];
+        int currentBodyListIndex = bodies.IndexOf(focussedBody);
+        for (int i = 0; i < bodies.Count; i++) bodyNames[i] = bodies[i].Name;
+        ImGui.Combo("Camera focus", ref currentBodyListIndex, bodyNames, bodies.Count);
+        focussedBody = bodies[currentBodyListIndex];
+        ImGui.NewLine();
+
+        if (ImGui.BeginTabBar("tab_bar"))
+        {
+            for (int i = 0; i < bodies.Count; i++)
+            {
+                if (ImGui.BeginTabItem(bodies[i].Name))
+                {
+                    ImGui.Text($"ID: {bodies[i].id}");
+                    string uiname = bodies[i].Name;
+                    ImGui.InputText("Name", ref uiname, 30);
+                    if (ImGui.IsItemDeactivatedAfterEdit())
+                    {
+                        bodies[i].Name = uiname;
+                    }
+                    ImGui.InputFloat("mass", ref bodies[i].Mass, 10);
+                    System.Numerics.Vector3 colourui = bodies[i].Colour.GetNumericsVector3();
+                    ImGui.ColorEdit3("Colour", ref colourui);
+                    bodies[i].Colour = new vec3(colourui);
+                    ImGui.EndTabItem();
+                }
+            }
+            ImGui.EndTabBar();
+        }
         ImGui.End();
     }
 }
