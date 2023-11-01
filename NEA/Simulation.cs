@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using static MathsOperations;
 using ImGuiNET;
-
+using System.Reflection.Metadata.Ecma335;
 
 internal class Simulation
 {
@@ -23,7 +23,7 @@ internal class Simulation
     private MouseCallback mouseCallback;
 
     private List<int> collisions;
-    private int focussedBodyIndex;
+    private Body focussedBody;
     private Keys[] keysToCheck = new Keys[] { Keys.Escape, Keys.Left, Keys.Right };
     private Dictionary<Keys,bool> currentKeys, prevKeys;
     private MouseButton[] mouseButtonsToCheck = new MouseButton[] { MouseButton.Left, MouseButton.Right, MouseButton.Middle };
@@ -57,9 +57,10 @@ internal class Simulation
         currentMouseButtons = new Dictionary<MouseButton, bool>() { { MouseButton.Left, false }, { MouseButton.Right, false }, { MouseButton.Middle, false } };
         prevMouseButtons = new Dictionary<MouseButton, bool>() { { MouseButton.Left, false }, { MouseButton.Right, false }, { MouseButton.Middle, false } };
 
-        bodies.Add(new Body(new vec3(0f, 1f, 0f), new vec3(1f, -0.1f, 0f), new vec3(1f, 1f, 1f), 1000f, true));
-        bodies.Add(new Body(new vec3(-6f, 1f, 0f), new vec3(0f, 1f, 3f), new vec3(0.2f, 1f, 1f), 100f));
-        bodies.Add(new Body(new vec3(7f, 0f, 0f), new vec3(0f, 0f, -3f), new vec3(0.8f, 0.1f, 0.2f), 100f));
+        bodies.Add(new Body(new vec3(0f, 1f, 0f), new vec3(1f, -0.1f, 0f), new vec3(1f, 1f, 1f), 1000f, "star", true));
+        bodies.Add(new Body(new vec3(-6f, 1f, 0f), new vec3(0f, 1f, 3f), new vec3(0.2f, 1f, 1f), 100f, "planet 1"));
+        bodies.Add(new Body(new vec3(7f, 0f, 0f), new vec3(0f, 0f, -3f), new vec3(0.8f, 0.1f, 0.2f), 100f, "planet two"));
+        focussedBody = bodies[0];
     }
     public void Update()
     {
@@ -77,8 +78,6 @@ internal class Simulation
 
         ProcessUI();
 
-        camera.ChangeTarget(bodies[focussedBodyIndex].Pos);
-
         foreach (Body body in bodies)
         {
             body.UpdatePos(deltaTime * 2);
@@ -88,7 +87,9 @@ internal class Simulation
         collisions.Clear();
         foreach (Body body in bodies) collisions.Add(body.GetCollidingBody(ref bodies));
         bodies.RemoveAll(body => collisions.Contains(body.id));
+        if (collisions.Contains(focussedBody.id)) focussedBody = bodies[0];
 
+        camera.ChangeTarget(focussedBody.Pos);
         renderer.SetViewMatrix(camera.GetViewMatrix());
         foreach (Body body in bodies)
         {
@@ -124,16 +125,6 @@ internal class Simulation
         {
             Glfw.SetWindowShouldClose(window, true);
         }
-        if (currentKeys[Keys.Left] && !prevKeys[Keys.Left])
-        {
-            focussedBodyIndex--;
-            if (focussedBodyIndex < 0) focussedBodyIndex = bodies.Count - 1;
-        }
-        if (currentKeys[Keys.Right] && !prevKeys[Keys.Right])
-        {
-            focussedBodyIndex++;
-            if (focussedBodyIndex >= bodies.Count) focussedBodyIndex = 0;
-        }
     }
     private void ProcessMouseInput()
     {
@@ -162,10 +153,30 @@ internal class Simulation
     }
     private void ProcessUI()
     {
-        if (ImGui.Button("Next body"))
+        ImGui.SetNextWindowPos(new System.Numerics.Vector2(800, 0), ImGuiCond.Always);
+        ImGui.SetNextWindowSize(new System.Numerics.Vector2(400, 800), ImGuiCond.Always);
+
+        ImGui.Begin("Controls", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse);
+        ImGui.Text($"Currently focussed body ID: {focussedBody.id}");
+        ImGui.SameLine();
+        if (ImGui.Button("+"))
         {
-            focussedBodyIndex++;
-            if (focussedBodyIndex >= bodies.Count) focussedBodyIndex = 0;
+            int currentBodyListIndex = bodies.IndexOf(focussedBody);
+            currentBodyListIndex = (currentBodyListIndex + 1) % bodies.Count;
+            focussedBody = bodies[currentBodyListIndex];
         }
+        ImGui.SameLine();
+        if (ImGui.Button("-"))
+        {
+            int currentBodyListIndex = bodies.IndexOf(focussedBody);
+            currentBodyListIndex = currentBodyListIndex - 1;
+            if (currentBodyListIndex < 0) currentBodyListIndex = bodies.Count - 1;
+            focussedBody = bodies[currentBodyListIndex];
+        }
+        //if (ImGui.BeginTabBar("tab_bar"))
+        //{
+
+        //}
+        ImGui.End();
     }
 }
