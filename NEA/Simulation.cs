@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using static MathsOperations;
 using ImGuiNET;
-using System.Reflection.Metadata.Ecma335;
 
 internal class Simulation
 {
@@ -31,6 +30,7 @@ internal class Simulation
     private double cursorX, cursorY, prevCursorX, prevCursorY;
     private float currentTime, prevTime, deltaTime;
     private int frameNumber = 0;
+    private bool renderVelocityArrows, renderForceArrows, renderPaths, renderGrid;
     public Simulation(ref Window simulationWindow, int width, int height)
     {
         window = simulationWindow;
@@ -81,7 +81,7 @@ internal class Simulation
         foreach (Body body in bodies)
         {
             body.UpdatePos(deltaTime * 2);
-            if (frameNumber % 60 == 1) body.UpdatePath();
+            if (frameNumber % 10 == 1) body.UpdatePath();
         }
         foreach (Body body in bodies) body.UpdateVelAndAcc(ref bodies, deltaTime * 2);
         collisions.Clear();
@@ -95,9 +95,10 @@ internal class Simulation
         {
             if (body.IsStar) renderer.DrawStar(body);
             else renderer.DrawPlanet(body);
-            renderer.DrawPath(body);
+            if (renderPaths) renderer.DrawPath(body);
+            if (renderVelocityArrows) renderer.DrawVelocityArrow(body);
         }
-        renderer.DrawGrid(camera.GetTarget(), 30, 2f);
+        if (renderGrid) renderer.DrawGrid(camera.GetTarget(), 30, 2f);
         renderer.Update();
 
         ImGui.Render();
@@ -163,6 +164,14 @@ internal class Simulation
         for (int i = 0; i < bodies.Count; i++) bodyNames[i] = bodies[i].Name;
         ImGui.Combo("Camera focus", ref currentBodyListIndex, bodyNames, bodies.Count);
         focussedBody = bodies[currentBodyListIndex];
+
+        ImGui.NewLine();
+
+        ImGui.Checkbox("Paths", ref renderPaths);
+        ImGui.Checkbox("Grid", ref renderGrid);
+        ImGui.Checkbox("Velocity arrows", ref renderVelocityArrows);
+        ImGui.Checkbox("Force arrows", ref renderForceArrows);
+
         ImGui.NewLine();
 
         if (ImGui.BeginTabBar("tab_bar"))
@@ -174,14 +183,16 @@ internal class Simulation
                     ImGui.Text($"ID: {bodies[i].id}");
                     string uiname = bodies[i].Name;
                     ImGui.InputText("Name", ref uiname, 30);
-                    if (ImGui.IsItemDeactivatedAfterEdit())
-                    {
-                        bodies[i].Name = uiname;
-                    }
-                    ImGui.InputFloat("mass", ref bodies[i].Mass, 10);
-                    System.Numerics.Vector3 colourui = bodies[i].Colour.GetNumericsVector3();
-                    ImGui.ColorEdit3("Colour", ref colourui);
-                    bodies[i].Colour = new vec3(colourui);
+                    if (ImGui.IsItemDeactivatedAfterEdit()) bodies[i].Name = uiname;
+
+                    float uimass = bodies[i].Mass;
+                    ImGui.SliderFloat("Mass", ref uimass, 10f, 2000f);
+                    bodies[i].Mass = uimass;
+
+                    System.Numerics.Vector3 uicolour = bodies[i].Colour.GetNumericsVector3();
+                    ImGui.ColorEdit3("Colour", ref uicolour);
+                    bodies[i].Colour = new vec3(uicolour);
+
                     ImGui.EndTabItem();
                 }
             }

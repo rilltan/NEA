@@ -14,13 +14,15 @@ internal class SpaceRenderer
 {
     private int X, Y, Width, Height;
     private mat4 Projection, View;
-    private List<Body> Stars, Planets, Paths;
+    private List<Body> Stars, Planets, Paths, VelocityArrows;
     private Shader StarShader, PlanetShader, GridShader, PathShader;
     private GLVertexArray SphereVertexArray;
     private float GridWidth;
     private int GridSize;
     private bool ShouldDrawGrid;
     private vec3 GridPos;
+
+    public float VelocityArrowScale;
     public SpaceRenderer(int x, int y, int width, int height)
     {
         X = x;
@@ -38,6 +40,7 @@ internal class SpaceRenderer
         Stars = new List<Body>();
         Planets = new List<Body>();
         Paths = new List<Body>();
+        VelocityArrows = new List<Body>();
 
         Mesh sphereMesh = GenerateSphereShadeSmooth(20, 10);
         SphereVertexArray = new GLVertexArray(sphereMesh.GetFloats(), new int[] { 3, 3 });
@@ -134,9 +137,17 @@ internal class SpaceRenderer
             glDrawArrays(GL_TRIANGLES, 0, SphereVertexArray.Length);
         }
 
+        float[] arrowVertices = new float[18];
+        foreach (Body body in VelocityArrows)
+        {
+            for (int i = 0; i < 3; i++) arrowVertices[i] = body.Pos[i];
+            for (int i = 3; i < 6; i++) arrowVertices[i] = body.Pos[i] + body.Vel[i] * VelocityArrowScale;
+        }
+
         Stars.Clear();
         Planets.Clear();
         Paths.Clear();
+        VelocityArrows.Clear();
         ShouldDrawGrid = false;
     }
     public void DrawPlanet(Body planet)
@@ -157,6 +168,10 @@ internal class SpaceRenderer
         GridPos = pos;
         GridSize = numberOfRows;
         GridWidth = rowWidth;
+    }
+    public void DrawVelocityArrow(Body body)
+    {
+        VelocityArrows.Add(body);
     }
     public void SetViewMatrix(mat4 view)
     {

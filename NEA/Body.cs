@@ -11,14 +11,14 @@ internal class Body
     private static int nextId = 0;
 
     public int id { get; }
-    public vec3 Colour;
-    public float Mass;
-    public string Name;
-    public vec3 Pos { get; }
+    public vec3 Colour { get; set; }
+    public float Mass { get; set; }
+    public string Name { get; set; }
+    public vec3 Pos { get; set; }
     public bool IsStar { get; }
     public float Radius { get { return (float)Math.Cbrt(Mass) / 4.6416f; } }
     public List<vec3> Path { get; }
-    private vec3 Vel;
+    public vec3 Vel { get; }
     private vec3 Acc;
     public Body(vec3 pos, vec3 vel, vec3 colour, float mass, string name, bool isStar = false)
     {
