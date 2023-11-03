@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using static MathsOperations;
 using ImGuiNET;
+using NEA;
 
 internal class Simulation
 {
@@ -30,7 +31,8 @@ internal class Simulation
     private double cursorX, cursorY, prevCursorX, prevCursorY;
     private float currentTime, prevTime, deltaTime;
     private int frameNumber = 0;
-    private bool renderVelocityArrows, renderForceArrows, renderPaths, renderGrid;
+    private bool renderVelocityMarkers, renderForceMarkers, renderPaths, renderGrid;
+    private float simulationSpeed;
     public Simulation(ref Window simulationWindow, int width, int height)
     {
         window = simulationWindow;
@@ -46,6 +48,13 @@ internal class Simulation
         var context = ImGui.CreateContext();
         ImGui.SetCurrentContext(context);
         UIController = new ImGuiController(ref simulationWindow, screenWidth, screenHeight);
+
+        renderPaths = true;
+        renderGrid = true;
+        renderVelocityMarkers = true;
+        renderForceMarkers = true;
+
+        simulationSpeed = 1f;
 
         currentKeys = new Dictionary<Keys, bool>();
         prevKeys = new Dictionary<Keys, bool>();
@@ -80,10 +89,10 @@ internal class Simulation
 
         foreach (Body body in bodies)
         {
-            body.UpdatePos(deltaTime * 2);
+            body.UpdatePos(deltaTime * simulationSpeed);
             if (frameNumber % 10 == 1) body.UpdatePath();
         }
-        foreach (Body body in bodies) body.UpdateVelAndAcc(ref bodies, deltaTime * 2);
+        foreach (Body body in bodies) body.UpdateVelAndAcc(ref bodies, deltaTime * simulationSpeed);
         collisions.Clear();
         foreach (Body body in bodies) collisions.Add(body.GetCollidingBody(ref bodies));
         bodies.RemoveAll(body => collisions.Contains(body.id));
@@ -96,7 +105,8 @@ internal class Simulation
             if (body.IsStar) renderer.DrawStar(body);
             else renderer.DrawPlanet(body);
             if (renderPaths) renderer.DrawPath(body);
-            if (renderVelocityArrows) renderer.DrawVelocityArrow(body);
+            if (renderVelocityMarkers) renderer.DrawVelocityMarker(body);
+            if (renderForceMarkers) renderer.DrawForceMarker(body);
         }
         if (renderGrid) renderer.DrawGrid(camera.GetTarget(), 30, 2f);
         renderer.Update();
@@ -166,11 +176,24 @@ internal class Simulation
         focussedBody = bodies[currentBodyListIndex];
 
         ImGui.NewLine();
-
         ImGui.Checkbox("Paths", ref renderPaths);
         ImGui.Checkbox("Grid", ref renderGrid);
-        ImGui.Checkbox("Velocity arrows", ref renderVelocityArrows);
-        ImGui.Checkbox("Force arrows", ref renderForceArrows);
+        ImGui.Checkbox("Velocity markers", ref renderVelocityMarkers);
+        if (renderVelocityMarkers)
+        {
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(ImGui.GetFontSize() * 10f);
+            ImGui.SliderFloat("Velocity scale", ref renderer.VelocityMarkerScale, 1f, 10f);
+        }
+        ImGui.Checkbox("Force markers", ref renderForceMarkers);
+        if (renderForceMarkers)
+        {
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(ImGui.GetFontSize() * 10f);
+            ImGui.SliderFloat("Force scale", ref renderer.ForceMarkerScale, 1f, 10f);
+        }
+
+        ImGui.SliderFloat("Simulation speed", ref simulationSpeed, 0.2f, 100f);
 
         ImGui.NewLine();
 

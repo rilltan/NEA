@@ -14,15 +14,15 @@ internal class SpaceRenderer
 {
     private int X, Y, Width, Height;
     private mat4 Projection, View;
-    private List<Body> Stars, Planets, Paths, VelocityArrows;
-    private Shader StarShader, PlanetShader, GridShader, PathShader;
+    private List<Body> Stars, Planets, Paths, VelocityMarkers, ForceMarkers;
+    private Shader StandardShader, PlanetShader, GridShader;
     private GLVertexArray SphereVertexArray;
     private float GridWidth;
     private int GridSize;
     private bool ShouldDrawGrid;
     private vec3 GridPos;
 
-    public float VelocityArrowScale;
+    public float VelocityMarkerScale, ForceMarkerScale;
     public SpaceRenderer(int x, int y, int width, int height)
     {
         X = x;
@@ -30,17 +30,20 @@ internal class SpaceRenderer
         Width = width;
         Height = height;
         
-        StarShader = new Shader(ShaderCode.vertexStar, ShaderCode.fragmentStar);
+        StandardShader = new Shader(ShaderCode.vertexStandard, ShaderCode.fragmentStandard);
         PlanetShader = new Shader(ShaderCode.vertexPlanet, ShaderCode.fragmentPlanet);
         GridShader = new Shader(ShaderCode.vertexGrid, ShaderCode.fragmentGrid);
-        PathShader = new Shader(ShaderCode.vertexGrid, ShaderCode.fragmentPath);
 
 
         Projection = Perspective(DegreesToRadians(45f), (float)width / height, 0.1f, 1000f);
         Stars = new List<Body>();
         Planets = new List<Body>();
         Paths = new List<Body>();
-        VelocityArrows = new List<Body>();
+        VelocityMarkers = new List<Body>();
+        ForceMarkers = new List<Body>();
+
+        VelocityMarkerScale = 2f;
+        ForceMarkerScale = 2f;
 
         Mesh sphereMesh = GenerateSphereShadeSmooth(20, 10);
         SphereVertexArray = new GLVertexArray(sphereMesh.GetFloats(), new int[] { 3, 3 });
@@ -65,6 +68,7 @@ internal class SpaceRenderer
 
         mat4 model;
 
+
         if (ShouldDrawGrid)
         {
             GLVertexArray GridVertexArray = new GLVertexArray(GenerateGridVertices(GridSize), new int[] { 3 });
@@ -83,6 +87,11 @@ internal class SpaceRenderer
             GridVertexArray.Delete();
         }
 
+
+        StandardShader.Use();
+        StandardShader.SetMatrix4("view", View);
+        StandardShader.SetMatrix4("projection", Projection);
+        StandardShader.SetMatrix4("model", new mat4(1.0f));
         GLVertexArray PathVertexArray;
         foreach (Body body in Paths)
         {
@@ -95,17 +104,26 @@ internal class SpaceRenderer
             }
             PathVertexArray  = new GLVertexArray(pathVertices, new int[] { 3 });
             PathVertexArray.Bind();
-            PathShader.Use();
-            PathShader.SetMatrix4("view", View);
-            PathShader.SetMatrix4("projection", Projection);
-            PathShader.SetMatrix4("model", new mat4(1.0f));
-            PathShader.SetVector3("colour", new vec3(body.Colour[0] / 2, body.Colour[1] / 2, body.Colour[2] / 2));
+            StandardShader.SetVector3("colour", new vec3(body.Colour[0] / 2, body.Colour[1] / 2, body.Colour[2] / 2));
             glDrawArrays(GL_LINE_STRIP, 0, PathVertexArray.Length);
 
             PathVertexArray.Delete();
         }
 
+
         SphereVertexArray.Bind();
+
+        StandardShader.Use();
+        StandardShader.SetMatrix4("view", View);
+        StandardShader.SetMatrix4("projection", Projection);
+        foreach (Body body in Stars)
+        {
+            model = Scale(new mat4(1f), new vec3(body.Radius));
+            model = Translate(model, body.Pos);
+            StandardShader.SetMatrix4("model", model);
+            StandardShader.SetVector3("colour", body.Colour);
+            glDrawArrays(GL_TRIANGLES, 0, SphereVertexArray.Length);
+        }
 
         PlanetShader.Use();
         PlanetShader.SetInt("numOfLights", Stars.Count);
@@ -125,29 +143,39 @@ internal class SpaceRenderer
             glDrawArrays(GL_TRIANGLES, 0, SphereVertexArray.Length);
         }
 
-        StarShader.Use();
-        StarShader.SetMatrix4("view", View);
-        StarShader.SetMatrix4("projection", Projection);
-        foreach (Body body in Stars)
+        glDisable(GL_DEPTH_TEST);
+        StandardShader.Use();
+        StandardShader.SetMatrix4("view", View);
+        StandardShader.SetMatrix4("projection", Projection);
+        StandardShader.SetMatrix4("model", new mat4(1.0f));
+        float[] markerVertices = new float[6];
+        foreach (Body body in VelocityMarkers)
         {
-            model = Scale(new mat4(1f), new vec3(body.Radius));
-            model = Translate(model, body.Pos);
-            StarShader.SetMatrix4("model", model);
-            StarShader.SetVector3("objectColour", body.Colour);
-            glDrawArrays(GL_TRIANGLES, 0, SphereVertexArray.Length);
+            for (int i = 0; i < 3; i++) markerVertices[i] = body.Pos[i];
+            for (int i = 0; i < 3; i++) markerVertices[i + 3] = body.Pos[i] + body.Vel[i] * VelocityMarkerScale;
+            GLVertexArray markerVertexArray = new GLVertexArray(markerVertices, new int[] { 3 });
+            markerVertexArray.Bind();
+            StandardShader.SetVector3("colour", new vec3(1f,0f,0f));
+            glDrawArrays(GL_LINES, 0, markerVertexArray.Length);
+            markerVertexArray.Delete();
+        }
+        foreach (Body body in ForceMarkers)
+        {
+            for (int i = 0; i < 3; i++) markerVertices[i] = body.Pos[i];
+            for (int i = 0; i < 3; i++) markerVertices[i + 3] = body.Pos[i] + body.Acc[i] * ForceMarkerScale;
+            GLVertexArray markerVertexArray = new GLVertexArray(markerVertices, new int[] { 3 });
+            markerVertexArray.Bind();
+            StandardShader.SetVector3("colour", new vec3(0f, 1f, 0f));
+            glDrawArrays(GL_LINES, 0, markerVertexArray.Length);
+            markerVertexArray.Delete();
         }
 
-        float[] arrowVertices = new float[18];
-        foreach (Body body in VelocityArrows)
-        {
-            for (int i = 0; i < 3; i++) arrowVertices[i] = body.Pos[i];
-            for (int i = 3; i < 6; i++) arrowVertices[i] = body.Pos[i] + body.Vel[i] * VelocityArrowScale;
-        }
 
         Stars.Clear();
         Planets.Clear();
         Paths.Clear();
-        VelocityArrows.Clear();
+        VelocityMarkers.Clear();
+        ForceMarkers.Clear();
         ShouldDrawGrid = false;
     }
     public void DrawPlanet(Body planet)
@@ -169,9 +197,13 @@ internal class SpaceRenderer
         GridSize = numberOfRows;
         GridWidth = rowWidth;
     }
-    public void DrawVelocityArrow(Body body)
+    public void DrawVelocityMarker(Body body)
     {
-        VelocityArrows.Add(body);
+        VelocityMarkers.Add(body);
+    }
+    public void DrawForceMarker(Body body)
+    {
+        ForceMarkers.Add(body);
     }
     public void SetViewMatrix(mat4 view)
     {

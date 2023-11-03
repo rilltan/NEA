@@ -87,26 +87,6 @@ namespace NEA {
         /// <summary>
         ///   Looks up a localized string similar to #version 330 core
         ///
-        ///out vec4 FragColour;
-        ///
-        ///in vec3 fragPos;
-        ///
-        ///uniform vec3 colour;
-        ///
-        ///void main()
-        ///{
-        ///    FragColour = vec4(colour, 1.0f);
-        ///}.
-        /// </summary>
-        internal static string fragmentPath {
-            get {
-                return ResourceManager.GetString("fragmentPath", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to #version 330 core
-        ///
         ///struct Light {
         ///    vec3 pos;
         ///    vec3 colour;
@@ -142,16 +122,17 @@ namespace NEA {
         ///   Looks up a localized string similar to #version 330 core
         ///
         ///out vec4 FragColour;
-        ///uniform vec3 objectColour;
+        ///
+        ///uniform vec3 colour;
         ///
         ///void main()
         ///{
-        ///    FragColour = vec4(objectColour, 1.0f);
+        ///    FragColour = vec4(colour, 1.0f);
         ///}.
         /// </summary>
-        internal static string fragmentStar {
+        internal static string fragmentStandard {
             get {
-                return ResourceManager.GetString("fragmentStar", resourceCulture);
+                return ResourceManager.GetString("fragmentStandard", resourceCulture);
             }
         }
         
@@ -239,9 +220,9 @@ namespace NEA {
         ///    gl_Position = projection * view * model * vec4(aPos.x, aPos.y, aPos.z, 1.0f);
         ///}.
         /// </summary>
-        internal static string vertexStar {
+        internal static string vertexStandard {
             get {
-                return ResourceManager.GetString("vertexStar", resourceCulture);
+                return ResourceManager.GetString("vertexStandard", resourceCulture);
             }
         }
         

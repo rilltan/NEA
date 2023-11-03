@@ -19,7 +19,7 @@ internal class Body
     public float Radius { get { return (float)Math.Cbrt(Mass) / 4.6416f; } }
     public List<vec3> Path { get; }
     public vec3 Vel { get; }
-    private vec3 Acc;
+    public vec3 Acc { get; }
     public Body(vec3 pos, vec3 vel, vec3 colour, float mass, string name, bool isStar = false)
     {
         Pos = pos;
