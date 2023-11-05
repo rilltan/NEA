@@ -162,7 +162,7 @@ internal class SpaceRenderer
         foreach (Body body in ForceMarkers)
         {
             for (int i = 0; i < 3; i++) markerVertices[i] = body.Pos[i];
-            for (int i = 0; i < 3; i++) markerVertices[i + 3] = body.Pos[i] + body.Acc[i] * ForceMarkerScale;
+            for (int i = 0; i < 3; i++) markerVertices[i + 3] = body.Pos[i] + body.Acc[i] * body.Mass * ForceMarkerScale / 20f;
             GLVertexArray markerVertexArray = new GLVertexArray(markerVertices, new int[] { 3 });
             markerVertexArray.Bind();
             StandardShader.SetVector3("colour", new vec3(0f, 1f, 0f));

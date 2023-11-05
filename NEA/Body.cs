@@ -15,10 +15,10 @@ internal class Body
     public float Mass { get; set; }
     public string Name { get; set; }
     public vec3 Pos { get; set; }
-    public bool IsStar { get; }
+    public bool IsStar { get; set; }
     public float Radius { get { return (float)Math.Cbrt(Mass) / 4.6416f; } }
     public List<vec3> Path { get; }
-    public vec3 Vel { get; }
+    public vec3 Vel { get; set; }
     public vec3 Acc { get; }
     public Body(vec3 pos, vec3 vel, vec3 colour, float mass, string name, bool isStar = false)
     {
