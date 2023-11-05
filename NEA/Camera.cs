@@ -19,7 +19,7 @@ internal class Camera
     public float Sensitivity;
     public Camera(vec3 target, float angleX, float angleY, float radius, float speed, float sensitivity)
     {
-        Target = target;
+        Target = new vec3(target);
         AngleX = angleX;
         AngleY = angleY;
         Radius = radius;
@@ -50,7 +50,9 @@ internal class Camera
     }
     public void ChangeTarget(vec3 target)
     {
-        Target = target;
+        Target[0] = target[0];
+        Target[1] = target[1];
+        Target[2] = target[2];
         UpdateVectors();
     }
     public vec3 GetTarget()
