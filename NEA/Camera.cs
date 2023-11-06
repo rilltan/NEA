@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static MathsOperations;
 
 internal class Camera
@@ -15,16 +11,12 @@ internal class Camera
     private vec3 Front;
     private vec3 Right;
     private vec3 Up;
-    public float Speed;
-    public float Sensitivity;
-    public Camera(vec3 target, float angleX, float angleY, float radius, float speed, float sensitivity)
+    public Camera(vec3 target, float angleX, float angleY, float radius)
     {
         Target = new vec3(target);
         AngleX = angleX;
         AngleY = angleY;
         Radius = radius;
-        Speed = speed;
-        Sensitivity = sensitivity;
         UpdateVectors();
     }
     public void ChangeAngles(float xChange, float yChange)
@@ -36,7 +28,7 @@ internal class Camera
 
         UpdateVectors();
     }
-    public void ChangeRadius(double x, double y)
+    public void ChangeRadius(double y)
     {
         if (y <= -1)
         {

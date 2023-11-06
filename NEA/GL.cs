@@ -1,4 +1,7 @@
-﻿using System;
+﻿// OpenGL bindings taken from https://gist.githubusercontent.com/dcronqvist/8e0c594532748e8fc21133ac6e3e8514/raw/89a0bcbdbd9692790f95fd60143980482a12d817/GL.cs
+// from video tutorial https://www.youtube.com/watch?v=LcHCygwIgLo
+
+using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;

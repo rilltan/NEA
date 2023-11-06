@@ -1,11 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 internal class mat4
 {
@@ -66,16 +59,6 @@ internal class mat4
                 }
                 result.data[4*i + j] = val;
             }
-        }
-        return result;
-    }
-    public override string ToString()
-    {
-        string result = "";
-        for (int i = 0; i < 16; i++)
-        {
-            result += string.Format("{0:0.00} ", data[i]);
-            if (i%4 == 3) result += "\n";
         }
         return result;
     }

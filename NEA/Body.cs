@@ -39,7 +39,6 @@ internal class Body
     }
     public void UpdateVelAndAcc(ref List<Body> bodies, float deltaTime)
     {
-        //vec3 forceVec = new vec3(0f);
         double[] forceVec = new double[3];
         double forceMagnitude;
         vec3 distanceVec;

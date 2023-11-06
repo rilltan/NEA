@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Buffers;
+﻿// ImGui backend adapted from https://www.lukeselman.com/dear-imgui-raylib-c-2/, under the "Creating our Controller" subheading
+
+// This is the backend to allow ImGui to interact with OpenGL and GLFW. Originally, this was
+// written for the rendering libaray Raylib, but I have adapted it to use OpenGL instead.
+
+using System;
 using System.Numerics;
-using System.Reflection;
-using System.IO;
-using System.Runtime.CompilerServices;
 using ImGuiNET;
 using GLFW;
 using System.Runtime.InteropServices;
-using System.Text;
 using static OpenGL.GL;
 using NEA;
 
@@ -72,7 +71,6 @@ internal unsafe class ImGuiController
 
         UIShader = new Shader(ShaderCode.vertexUI, ShaderCode.fragmentUI);
 
-        // Use this space to add more fonts
         LoadDefaultFontAtlas();
     }
 
@@ -304,6 +302,15 @@ internal unsafe class ImGuiController
 
     public void Render(ImDrawDataPtr draw_data)
     {
+        glViewport(0, 0, screenWidth, screenHeight);
+        glEnable(GL_BLEND);
+        glBlendEquation(GL_FUNC_ADD);
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        glDisable(GL_CULL_FACE);
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_STENCIL_TEST);
+        glEnable(GL_SCISSOR_TEST);
+
         float[] vertices = new float[draw_data.TotalIdxCount * 8];
         int vertexCounter = 0;
         for (int n = 0; n < draw_data.CmdListsCount; n++)
@@ -368,14 +375,7 @@ internal unsafe class ImGuiController
                 idx_index += pcmd.ElemCount;
             }
         }
-        glViewport(0, 0, screenWidth, screenHeight);
-        glEnable(GL_BLEND);
-        glBlendEquation(GL_FUNC_ADD);
-        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-        glDisable(GL_CULL_FACE);
-        glDisable(GL_DEPTH_TEST);
-        glDisable(GL_STENCIL_TEST);
-        glEnable(GL_SCISSOR_TEST);
+        
         if (draw_data.TotalVtxCount > 0)
         {
             GLVertexArray UIVertexArray = new GLVertexArray(vertices, new int[] { 2, 2, 4 });

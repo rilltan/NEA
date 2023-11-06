@@ -1,10 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 internal static class MathsOperations
 {
@@ -54,7 +48,7 @@ internal static class MathsOperations
 
         return result * matrix;
     }
-    public static mat4 Perspective(float fieldOfView, float aspectRatio, float near, float far)
+    public static mat4 GeneratePerspectiveMatrix(float fieldOfView, float aspectRatio, float near, float far)
     {
         float top = near * (float)Math.Tan(0.5 * fieldOfView);
         float right = aspectRatio * top;
@@ -66,40 +60,10 @@ internal static class MathsOperations
         result[14] = -1f;
         return result;
     }
-    public static mat4 LookAtTarget(vec3 camPos, vec3 targetPos, vec3 up)
-    {
-        vec3 camDir = Normalize(camPos - targetPos);
-        vec3 camRight = Normalize(Cross(up, camDir));
-        vec3 camUp = Cross(camDir, camRight);
-
-        mat4 result = new mat4(1f);
-        for (int i = 0; i < 3; i++) result[i] = camRight[i];
-        for (int i = 0; i < 3; i++) result[i + 4] = camUp[i];
-        for (int i = 0; i < 3; i++) result[i + 8] = camDir[i];
-        result = result * Translate(new mat4(1f), new vec3(-camPos[0], -camPos[1], -camPos[2]));
-        return result;
-    }
-    public static mat4 LookAtDirection(vec3 camPos, vec3 camDir, vec3 up)
-    {
-        camDir = Normalize(camDir);
-        vec3 camRight = Normalize(Cross(up, camDir));
-        vec3 camUp = Cross(camDir, camRight);
-
-        mat4 result = new mat4(1f);
-        for (int i = 0; i < 3; i++) result[i] = camRight[i];
-        for (int i = 0; i < 3; i++) result[i+4] = camUp[i];
-        for (int i = 0; i < 3; i++) result[i+8] = camDir[i];
-        result = result * Translate(new mat4(1f), new vec3(-camPos[0], -camPos[1], -camPos[2]));
-        return result;
-    }
     public static float DegreesToRadians(float degrees)
     {
         return degrees * (float)Math.PI / 180f;
             
-    }
-    public static float RadiansToDegrees(float radians)
-    {
-        return radians * 180f / (float)Math.PI;
     }
     public static vec3 Normalize(vec3 vector)
     {
@@ -121,7 +85,7 @@ internal static class MathsOperations
 
         return result;
     }
-    public static Mesh GenerateSphereShadeSmooth(int columns, int rows)
+    public static Mesh GenerateSphereVertices(int columns, int rows)
     {
         Mesh result = new Mesh();
 
@@ -163,58 +127,6 @@ internal static class MathsOperations
                     new Vertex(vertexLookup[(x + 1) % columns, y + 1]),
                     new Vertex(vertexLookup[x, y + 1]),
                     new Vertex(vertexLookup[x, y])));
-            }
-        }
-
-        return result;
-    }
-    public static Mesh GenerateSphereShadeFlat(int columns, int rows)
-    {
-        Mesh result = new Mesh();
-
-        // maths to generate all the vertices
-        vec3[,] vertexLookup = new vec3[columns, rows-1];
-        for (int y = 0; y < rows-1; y++)
-        {
-            for (int x = 0; x < columns; x++)
-            {
-                vertexLookup[x, y] = SphericalToXYZ((float)x / columns * (float)Math.PI * 2, (0.5f - (float)(y + 1) / rows) * (float)Math.PI);
-            }
-        }
-        vec3 topVertex = new vec3(0, 1, 0);
-        vec3 bottomVertex = new vec3(0, -1, 0);
-
-        vec3 normal;
-
-        // assigning vertices to mesh for top and bottom row
-        for (int x = 0; x < columns; x++)
-        {
-            normal = Normalize(topVertex + vertexLookup[(x + 1) % columns, 0] + vertexLookup[x, 0]);
-            result.Add(new Tri(
-                new Vertex(topVertex, normal),
-                new Vertex(vertexLookup[(x + 1) % columns, 0], normal),
-                new Vertex(vertexLookup[x, 0], normal)));
-
-            normal = Normalize(bottomVertex + vertexLookup[(x + 1) % columns, rows - 2] + vertexLookup[x, rows - 2]);
-            result.Add(new Tri(
-                new Vertex(vertexLookup[x, rows-2], normal),
-                new Vertex(vertexLookup[(x + 1) % columns, rows - 2], normal),
-                new Vertex(bottomVertex, normal)));
-        }
-        //assigning vertices to mesh for middle rows
-        for (int y = 0; y < rows - 2; y++)
-        {
-            for (int x = 0; x < columns; x++)
-            {
-                normal = Normalize(vertexLookup[x, y] + vertexLookup[(x + 1) % columns, y] + vertexLookup[(x + 1) % columns, y + 1] + vertexLookup[x, y + 1]);
-                result.Add(new Tri(
-                    new Vertex(vertexLookup[x, y], normal),
-                    new Vertex(vertexLookup[(x + 1) % columns, y], normal),
-                    new Vertex(vertexLookup[(x + 1) % columns, y + 1], normal)));
-                result.Add(new Tri(
-                    new Vertex(vertexLookup[(x + 1) % columns, y + 1], normal),
-                    new Vertex(vertexLookup[x, y + 1], normal),
-                    new Vertex(vertexLookup[x, y], normal)));
             }
         }
 

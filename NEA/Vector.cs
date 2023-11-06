@@ -1,10 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 internal class vec3
 {
@@ -102,32 +96,5 @@ internal class vec4
     {
         get { return data[i]; }
         set { data[i] = value; }
-    }
-    public static vec4 operator +(vec4 x, vec4 y)
-    {
-        vec4 result = new vec4();
-        for (int i = 0; i < 4; i++) result[i] = x[i] + y[i];
-        return result;
-    }
-    public static vec4 operator -(vec4 x, vec4 y)
-    {
-        vec4 result = new vec4();
-        for (int i = 0; i < 4; i++) result[i] = x[i] - y[i];
-        return result;
-    }
-    public static vec4 operator *(mat4 m, vec4 v)
-    {
-        vec4 result = new vec4();
-        float val;
-        for (int i = 0; i < 4; i++)
-        {
-            val = 0f;
-            for (int j = 0; j < 4; j++)
-            {
-                val += m[i*4 + j] * v[j];
-            }
-            result[i] = val;
-        }
-        return result;
     }
 }
