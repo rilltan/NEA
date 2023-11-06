@@ -1,26 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 internal class Body
 {
-    private static float G = 6.6743E-11f;
+    private static double G = 6.6743E-11;
     private static int nextId = 0;
 
     public int id { get; }
+    public List<vec3> Path { get; }
+    public vec3 Acc { get; }
     public vec3 Colour { get; set; }
     public float Mass { get; set; }
     public string Name { get; set; }
     public vec3 Pos { get; set; }
     public bool IsStar { get; set; }
-    //public float Radius { get { return (float)Math.Cbrt(Mass) / 4.6416f; } }
     public float Radius { get; set; }
-    public List<vec3> Path { get; }
     public vec3 Vel { get; set; }
-    public vec3 Acc { get; }
     public Body(vec3 pos, vec3 vel, vec3 colour, float mass, float radius, string name, bool isStar = false)
     {
         Pos = pos;
@@ -45,8 +39,9 @@ internal class Body
     }
     public void UpdateVelAndAcc(ref List<Body> bodies, float deltaTime)
     {
-        vec3 forceVec = new vec3(0f);
-        float forceMagnitude;
+        //vec3 forceVec = new vec3(0f);
+        double[] forceVec = new double[3];
+        double forceMagnitude;
         vec3 distanceVec;
         float distanceMagnitude;
         foreach (Body body in bodies)
@@ -60,8 +55,8 @@ internal class Body
             }
         }
 
-        for (int i = 0; i < 3; i++) Vel[i] += 0.5f * (Acc[i] + forceVec[i] / Mass) * deltaTime;
-        for (int i = 0; i < 3; i++) Acc[i] = forceVec[i] / Mass;
+        for (int i = 0; i < 3; i++) Vel[i] += 0.5f * (Acc[i] + (float)(forceVec[i] / Mass)) * deltaTime;
+        for (int i = 0; i < 3; i++) Acc[i] = (float)(forceVec[i] / Mass);
     }
     public int GetCollidingBody(ref List<Body> bodies)
     {

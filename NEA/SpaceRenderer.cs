@@ -22,7 +22,7 @@ internal class SpaceRenderer
     private bool ShouldDrawGrid;
     private vec3 GridPos;
 
-    public float VelocityMarkerScale, ForceMarkerScale;
+    public float BodyViewScale, VelocityMarkerScale, ForceMarkerScale;
     public SpaceRenderer(int x, int y, int width, int height)
     {
         X = x;
@@ -35,15 +35,16 @@ internal class SpaceRenderer
         GridShader = new Shader(ShaderCode.vertexGrid, ShaderCode.fragmentGrid);
 
 
-        Projection = Perspective(DegreesToRadians(45f), (float)width / height, 0.1f, 1000f);
+        Projection = Perspective(DegreesToRadians(45f), (float)width / height, 0.01f, 1000f);
         Stars = new List<Body>();
         Planets = new List<Body>();
         Paths = new List<Body>();
         VelocityMarkers = new List<Body>();
         ForceMarkers = new List<Body>();
 
-        VelocityMarkerScale = 2f;
+        VelocityMarkerScale = 5f;
         ForceMarkerScale = 2f;
+        BodyViewScale = 25f;
 
         Mesh sphereMesh = GenerateSphereShadeSmooth(20, 10);
         SphereVertexArray = new GLVertexArray(sphereMesh.GetFloats(), new int[] { 3, 3 });
@@ -62,6 +63,8 @@ internal class SpaceRenderer
         glEnable(GL_DEPTH_TEST);
         glDisable(GL_SCISSOR_TEST);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        //glEnable(GL_CULL_FACE);
+        //glFrontFace(GL_CW);
 
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -104,7 +107,7 @@ internal class SpaceRenderer
             }
             PathVertexArray  = new GLVertexArray(pathVertices, new int[] { 3 });
             PathVertexArray.Bind();
-            StandardShader.SetVector3("colour", new vec3(body.Colour[0] / 2, body.Colour[1] / 2, body.Colour[2] / 2));
+            StandardShader.SetVector4("colour", new vec4(body.Colour[0] / 1.3f, body.Colour[1] / 1.3f, body.Colour[2] / 1.3f, 1f));
             glDrawArrays(GL_LINE_STRIP, 0, PathVertexArray.Length);
 
             PathVertexArray.Delete();
@@ -119,9 +122,10 @@ internal class SpaceRenderer
         foreach (Body body in Stars)
         {
             model = Scale(new mat4(1f), new vec3(SimDistanceToRenderDistance(body.Radius)));
+            model = Scale(model, new vec3(BodyViewScale));
             model = Translate(model, SimPosToRenderPos(body.Pos));
             StandardShader.SetMatrix4("model", model);
-            StandardShader.SetVector3("colour", body.Colour);
+            StandardShader.SetVector4("colour", new vec4(body.Colour[0], body.Colour[1], body.Colour[2], 1f));
             glDrawArrays(GL_TRIANGLES, 0, SphereVertexArray.Length);
         }
 
@@ -137,9 +141,10 @@ internal class SpaceRenderer
         foreach (Body body in Planets)
         {
             model = Scale(new mat4(1f), new vec3(SimDistanceToRenderDistance(body.Radius)));
+            model = Scale(model, new vec3(BodyViewScale));
             model = Translate(model, SimPosToRenderPos(body.Pos));
             PlanetShader.SetMatrix4("model", model);
-            PlanetShader.SetVector3("objectColour", body.Colour);
+            PlanetShader.SetVector4("objectColour", new vec4(body.Colour[0], body.Colour[1], body.Colour[2], 1f));
             glDrawArrays(GL_TRIANGLES, 0, SphereVertexArray.Length);
         }
 
@@ -152,20 +157,20 @@ internal class SpaceRenderer
         foreach (Body body in VelocityMarkers)
         {
             for (int i = 0; i < 3; i++) markerVertices[i] = SimDistanceToRenderDistance(body.Pos[i]);
-            for (int i = 0; i < 3; i++) markerVertices[i + 3] = SimDistanceToRenderDistance(body.Pos[i] + body.Vel[i] * VelocityMarkerScale);
+            for (int i = 0; i < 3; i++) markerVertices[i + 3] = SimDistanceToRenderDistance(body.Pos[i] + body.Vel[i] * VelocityMarkerScale * 100000f);
             GLVertexArray markerVertexArray = new GLVertexArray(markerVertices, new int[] { 3 });
             markerVertexArray.Bind();
-            StandardShader.SetVector3("colour", new vec3(1f,0f,0f));
+            StandardShader.SetVector4("colour", new vec4(1f,0f,0f,1f));
             glDrawArrays(GL_LINES, 0, markerVertexArray.Length);
             markerVertexArray.Delete();
         }
         foreach (Body body in ForceMarkers)
         {
             for (int i = 0; i < 3; i++) markerVertices[i] = SimDistanceToRenderDistance(body.Pos[i]);
-            for (int i = 0; i < 3; i++) markerVertices[i + 3] = SimDistanceToRenderDistance(body.Pos[i] + body.Acc[i] * body.Mass * ForceMarkerScale / 20f);
+            for (int i = 0; i < 3; i++) markerVertices[i + 3] = SimDistanceToRenderDistance(body.Pos[i] + body.Acc[i] * body.Mass * ForceMarkerScale / 1E13f);
             GLVertexArray markerVertexArray = new GLVertexArray(markerVertices, new int[] { 3 });
             markerVertexArray.Bind();
-            StandardShader.SetVector3("colour", new vec3(0f, 1f, 0f));
+            StandardShader.SetVector4("colour", new vec4(0f, 1f, 0f, 1f));
             glDrawArrays(GL_LINES, 0, markerVertexArray.Length);
             markerVertexArray.Delete();
         }
@@ -193,9 +198,9 @@ internal class SpaceRenderer
     public void DrawGrid(vec3 pos, int numberOfRows, float rowWidth)
     {
         ShouldDrawGrid = true;
-        GridPos = pos;
+        GridPos = SimPosToRenderPos(pos);
         GridSize = numberOfRows;
-        GridWidth = rowWidth;
+        GridWidth = SimDistanceToRenderDistance(rowWidth);
     }
     public void DrawVelocityMarker(Body body)
     {

@@ -34,6 +34,8 @@ internal class Simulation
     private bool renderVelocityMarkers, renderForceMarkers, renderPaths, renderGrid;
     private float simulationSpeed;
     private bool simulationPaused;
+    private string saveLoadResult;
+    private float timeWhenSaveLoad;
     public Simulation(ref Window simulationWindow, int width, int height)
     {
         window = simulationWindow;
@@ -41,7 +43,7 @@ internal class Simulation
         screenHeight = height;
         renderer = new SpaceRenderer(0, 0, 800, screenHeight);
         bodies = new List<Body>();
-        camera = new Camera(new vec3(0, 0, 0), 0, DegreesToRadians(89), 5E8f, 0.2f, 0.001f);
+        camera = new Camera(new vec3(0, 0, 0), 0, DegreesToRadians(89), 5E11f, 0.2f, 0.001f);
         mouseCallback = new MouseCallback(OnMouseScroll);
         Glfw.SetScrollCallback(window, mouseCallback);
         collisions = new List<int>();
@@ -73,9 +75,8 @@ internal class Simulation
         currentMouseButtons = new Dictionary<MouseButton, bool>() { { MouseButton.Left, false }, { MouseButton.Right, false }, { MouseButton.Middle, false } };
         prevMouseButtons = new Dictionary<MouseButton, bool>() { { MouseButton.Left, false }, { MouseButton.Right, false }, { MouseButton.Middle, false } };
 
-        //bodies.Add(new Body(new vec3(0f, 1f, 0f), new vec3(1f, -0.1f, 0f), new vec3(1f, 1f, 1f), 1000f, "star", true));
-        //bodies.Add(new Body(new vec3(-6f, 1f, 0f), new vec3(0f, 1f, 3f), new vec3(0.2f, 1f, 1f), 100f, "planet 1"));
-        //bodies.Add(new Body(new vec3(7f, 0f, 0f), new vec3(0f, 0f, -3f), new vec3(0.8f, 0.1f, 0.2f), 100f, "planet two"));
+        saveLoadResult = "";
+
         focussedBodyID = -1;
     }
     public void Update()
@@ -124,7 +125,7 @@ internal class Simulation
             if (renderVelocityMarkers) renderer.DrawVelocityMarker(body);
             if (renderForceMarkers) renderer.DrawForceMarker(body);
         }
-        if (renderGrid) renderer.DrawGrid(camera.GetTarget(), 30, 2f);
+        if (renderGrid) renderer.DrawGrid(camera.GetTarget(), 60, 1E10f);
         renderer.Update();
 
         ImGui.Render();
@@ -200,7 +201,43 @@ internal class Simulation
         ImGui.SetNextWindowSize(new System.Numerics.Vector2(400, 800), ImGuiCond.Always);
 
         ImGui.Begin("Controls", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar);
-        
+
+        ImGui.NewLine();
+
+        if (ImGui.Button("Load inner solar system"))
+        {
+            LoadSimulationFromText("0,0,0,0,0,0,0.9190636,0.9362745,0.40847272,1.9728E+30,696342000,Sun,True\n1.48E+11,0,0,0,0,29784,0,0.38235307,1,5.97E+24,6378000,Earth,False\n5.8E+10,0,0,0,0,47000,0.2647059,0.2647059,0.2647059,3.285E+23,2439700,Mercury,False\n1.082E+11,0,0,0,0,35021,0.9607843,0.48039216,0,4.867E+24,6051800,Venus,False\n2.3E+11,0,0,0,0,24077,0.9558824,0.014057107,0.014057107,6.4171E+23,3389500,Mars,False\n");
+        }
+        if (ImGui.Button("Save simulation"))
+        {
+            timeWhenSaveLoad = currentTime;
+            try
+            {
+                ImGui.SetClipboardText(SaveSimulationAsText());
+                saveLoadResult = "Simulation data successfully copied to clipboard";
+            }
+            catch (System.Exception e)
+            {
+                saveLoadResult = "Save failed: " + e.Message;
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Load simulation from clipboard"))
+        {
+            timeWhenSaveLoad = currentTime;
+            try
+            {
+                LoadSimulationFromText(ImGui.GetClipboardText());
+                saveLoadResult = "Simulation successfully loaded";
+            }
+            catch (System.Exception e)
+            {
+                saveLoadResult = "Load failed: " + e.Message;
+            }
+        }
+        if (currentTime < timeWhenSaveLoad + 3) ImGui.TextWrapped(saveLoadResult);
+        else ImGui.NewLine(); ImGui.NewLine();
+
         ImGui.SeparatorText("Controls");
 
         string[] cameraFocusOptions = new string[bodies.Count + 1];
@@ -220,15 +257,16 @@ internal class Simulation
         {
             ImGui.SameLine();
             ImGui.SetNextItemWidth(ImGui.GetFontSize() * 10f);
-            ImGui.SliderFloat("Velocity scale", ref renderer.VelocityMarkerScale, 0.1f, 10f, "%.3f", ImGuiSliderFlags.Logarithmic);
+            ImGui.SliderFloat("Velocity scale", ref renderer.VelocityMarkerScale, 0.1f, 50f, "%.3f", ImGuiSliderFlags.Logarithmic);
         }
         ImGui.Checkbox("Force markers", ref renderForceMarkers);
         if (renderForceMarkers)
         {
             ImGui.SameLine();
             ImGui.SetNextItemWidth(ImGui.GetFontSize() * 10f);
-            ImGui.SliderFloat("Force scale", ref renderer.ForceMarkerScale, 0.1f, 10f, "%.3f", ImGuiSliderFlags.Logarithmic);
+            ImGui.SliderFloat("Force scale", ref renderer.ForceMarkerScale, 0.1f, 50f, "%.3f", ImGuiSliderFlags.Logarithmic);
         }
+        ImGui.SliderFloat("Body view scale", ref renderer.BodyViewScale, 1f, 1000f);
 
         ImGui.NewLine();
 
@@ -270,6 +308,11 @@ internal class Simulation
                     string uiname = bodies[i].Name;
                     ImGui.InputText("Name", ref uiname, 30);
                     if (ImGui.IsItemDeactivatedAfterEdit()) bodies[i].Name = uiname;
+                    
+                    bool uistar = bodies[i].IsStar;
+                    ImGui.Checkbox("Star", ref uistar);
+                    bodies[i].IsStar = uistar;
+                    UITooltip("This just determines whether it emits light or not");
 
                     float uimass = bodies[i].Mass;
                     ImGui.SliderFloat("Mass", ref uimass, 1E23f, 1E31f, "%.5e kg", ImGuiSliderFlags.Logarithmic);
@@ -283,19 +326,14 @@ internal class Simulation
                     ImGui.ColorEdit3("Colour", ref uicolour);
                     bodies[i].Colour = new vec3(uicolour);
 
-                    bool uistar = bodies[i].IsStar;
-                    ImGui.Checkbox("Star", ref uistar);
-                    bodies[i].IsStar = uistar;
-                    UITooltip("This just determines whether it emits light or not");
-
                     if (!simulationPaused) ImGui.BeginDisabled();
                     System.Numerics.Vector3 uivelocity = bodies[i].Vel.GetNumericsVector3();
-                    ImGui.DragFloat3("Velocity", ref uivelocity, 10000f, 0f, 1000000f, "%.1e m/s");
+                    ImGui.DragFloat3("Velocity", ref uivelocity, 1000f, -100000, 100000f, "%.1e m/s");
                     bodies[i].Vel = new vec3(uivelocity);
                     UITooltip("Can only be adjusted when the simulation is paused");
 
                     System.Numerics.Vector3 uiposition = bodies[i].Pos.GetNumericsVector3();
-                    ImGui.DragFloat3("Position", ref uiposition, 1E9f, 0f, 1E12f, "%.1e m");
+                    ImGui.DragFloat3("Position", ref uiposition, 1E9f, -1E12f, 1E12f, "%.1e m");
                     bodies[i].Pos = new vec3(uiposition);
                     UITooltip("Can only be adjusted when the simulation is paused");
                     if (!simulationPaused) ImGui.EndDisabled();
@@ -317,5 +355,53 @@ internal class Simulation
         ImGui.SameLine();
         ImGui.TextDisabled("(?)");
         if (ImGui.IsItemHovered(ImGuiHoveredFlags.DelayNormal | ImGuiHoveredFlags.AllowWhenDisabled)) ImGui.SetTooltip(text);
+    }
+    private string SaveSimulationAsText()
+    {
+        string result = "";
+        foreach (Body body in bodies)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                result += body.Pos[i] + ",";
+            }
+            for (int i = 0; i < 3; i++)
+            {
+                result += body.Vel[i] + ",";
+            }
+            for (int i = 0; i < 3; i++)
+            {
+                result += body.Colour[i] + ",";
+            }
+            result += body.Mass + ",";
+            result += body.Radius + ",";
+            result += body.Name + ",";
+            result += body.IsStar;
+            result += "\n";
+        }
+        return result;
+    }
+    private void LoadSimulationFromText(string data)
+    {
+        bodies.Clear();
+        simulationPaused = true;
+        string[] lines = data.Split('\n',StringSplitOptions.RemoveEmptyEntries);
+        foreach (string line in lines)
+        {
+            string[] bodyDataStrings = line.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            float[] bodyData = new float[bodyDataStrings.Length - 2];
+            for (int i = 0; i < bodyDataStrings.Length - 2; i++)
+            {
+                bodyData[i] = float.Parse(bodyDataStrings[i]);
+            }
+            bodies.Add(new Body(
+                new vec3(bodyData[0], bodyData[1], bodyData[2]),
+                new vec3(bodyData[3], bodyData[4], bodyData[5]),
+                new vec3(bodyData[6], bodyData[7], bodyData[8]),
+                bodyData[9],
+                bodyData[10],
+                bodyDataStrings[11],
+                bool.Parse(bodyDataStrings[12])));
+        }
     }
 }

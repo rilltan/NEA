@@ -150,7 +150,7 @@ out vec4 FragColour;
 in vec3 normal;
 in vec3 fragPos;
 
-uniform vec3 objectColour;
+uniform vec4 objectColour;
 
 void main()
 {
@@ -166,8 +166,8 @@ void main()
 
     float ambientStrength = 0.0f;
     vec3 ambient = vec3(ambientStrength);
-    result = (ambient+result) * objectColour;
-    FragColour = vec4(result, 1.0f);
+    result = (ambient+result) * objectColour.xyz;
+    FragColour = vec4(result, objectColour.w);
 }</value>
   </data>
   <data name="fragmentStandard" xml:space="preserve">
@@ -175,11 +175,11 @@ void main()
 
 out vec4 FragColour;
 
-uniform vec3 colour;
+uniform vec4 colour;
 
 void main()
 {
-    FragColour = vec4(colour, 1.0f);
+    FragColour = colour;
 }</value>
   </data>
   <data name="fragmentUI" xml:space="preserve">

@@ -99,7 +99,7 @@ namespace NEA {
         ///in vec3 normal;
         ///in vec3 fragPos;
         ///
-        ///uniform vec3 objectColour;
+        ///uniform vec4 objectColour;
         ///
         ///void main()
         ///{
@@ -123,11 +123,11 @@ namespace NEA {
         ///
         ///out vec4 FragColour;
         ///
-        ///uniform vec3 colour;
+        ///uniform vec4 colour;
         ///
         ///void main()
         ///{
-        ///    FragColour = vec4(colour, 1.0f);
+        ///    FragColour = colour;
         ///}.
         /// </summary>
         internal static string fragmentStandard {
