@@ -212,8 +212,6 @@ internal class Simulation
         if (currentFocusOption >= bodies.Count) focussedBodyID = -1;
         else focussedBodyID = bodies[currentFocusOption].id;
 
-        ImGui.Text(focussedBodyID.ToString());
-
         ImGui.NewLine();
         ImGui.Checkbox("Paths", ref renderPaths);
         ImGui.Checkbox("Grid", ref renderGrid);
@@ -265,7 +263,7 @@ internal class Simulation
         {
             for (int i = 0; i < bodies.Count; i++)
             {
-                if (ImGui.BeginTabItem(bodies[i].Name))
+                if (ImGui.BeginTabItem($"{bodies[i].Name}###ImGuiTabID{bodies[i].id}"))
                 {
                     ImGui.Text($"ID: {bodies[i].id}");
                     string uiname = bodies[i].Name;
