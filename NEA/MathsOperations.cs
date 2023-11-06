@@ -250,4 +250,13 @@ internal static class MathsOperations
         }
         return output;
     }
+    public static float SimDistanceToRenderDistance(float x)
+    {
+        //1*10^10 meters (10 million km) in the simulation converts to 1 render unit
+        return x / 10000000000f;
+    }
+    public static vec3 SimPosToRenderPos(vec3 pos)
+    {
+        return new vec3(SimDistanceToRenderDistance(pos[0]), SimDistanceToRenderDistance(pos[1]), SimDistanceToRenderDistance(pos[2]));
+    }
 }

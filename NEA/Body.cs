@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 internal class Body
 {
-    private static float G = 0.05f;
+    private static float G = 6.6743E-11f;
     private static int nextId = 0;
 
     public int id { get; }
@@ -16,16 +16,18 @@ internal class Body
     public string Name { get; set; }
     public vec3 Pos { get; set; }
     public bool IsStar { get; set; }
-    public float Radius { get { return (float)Math.Cbrt(Mass) / 4.6416f; } }
+    //public float Radius { get { return (float)Math.Cbrt(Mass) / 4.6416f; } }
+    public float Radius { get; set; }
     public List<vec3> Path { get; }
     public vec3 Vel { get; set; }
     public vec3 Acc { get; }
-    public Body(vec3 pos, vec3 vel, vec3 colour, float mass, string name, bool isStar = false)
+    public Body(vec3 pos, vec3 vel, vec3 colour, float mass, float radius, string name, bool isStar = false)
     {
         Pos = pos;
         Name = name;
         Vel = vel;
         Mass = mass;
+        Radius = radius;
         Colour = colour;
         Acc = new vec3(0f,0f,0f);
         IsStar = isStar;

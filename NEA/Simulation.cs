@@ -41,7 +41,7 @@ internal class Simulation
         screenHeight = height;
         renderer = new SpaceRenderer(0, 0, 800, screenHeight);
         bodies = new List<Body>();
-        camera = new Camera(new vec3(0, 0, 0), 0, DegreesToRadians(89), 20, 0.2f, 0.001f);
+        camera = new Camera(new vec3(0, 0, 0), 0, DegreesToRadians(89), 5E8f, 0.2f, 0.001f);
         mouseCallback = new MouseCallback(OnMouseScroll);
         Glfw.SetScrollCallback(window, mouseCallback);
         collisions = new List<int>();
@@ -60,7 +60,7 @@ internal class Simulation
         renderForceMarkers = true;
 
         frameNumber = 0;
-        simulationSpeed = 1f;
+        simulationSpeed = 262144f;
         simulationPaused = true;
 
         currentKeys = new Dictionary<Keys, bool>();
@@ -239,7 +239,7 @@ internal class Simulation
 
         if (simulationPaused) ImGui.BeginDisabled();
         int uisimspeed = (int)Math.Log2(simulationSpeed);
-        ImGui.SliderInt("Speed", ref uisimspeed, -3, 5, $"{simulationSpeed}x");
+        ImGui.SliderInt("Speed", ref uisimspeed, 13, 24, $"{simulationSpeed}x");
         simulationSpeed = (float)Math.Pow(2, uisimspeed);
         UITooltip("Can only be used when the simulation is running");
         if (simulationPaused) ImGui.EndDisabled();
@@ -252,7 +252,8 @@ internal class Simulation
                 new vec3(0f, 0f, 0f),
                 new vec3(0f, 0f, 0f),
                 new vec3(1f, 1f, 1f),
-                100f,
+                1E24f,
+                1E7f,
                 $"body #{bodies.Count}"
             ));
         }
@@ -271,8 +272,12 @@ internal class Simulation
                     if (ImGui.IsItemDeactivatedAfterEdit()) bodies[i].Name = uiname;
 
                     float uimass = bodies[i].Mass;
-                    ImGui.SliderFloat("Mass", ref uimass, 10f, 2000f);
+                    ImGui.SliderFloat("Mass", ref uimass, 1E23f, 1E31f, "%.5e kg", ImGuiSliderFlags.Logarithmic);
                     bodies[i].Mass = uimass;
+
+                    float uiradius = bodies[i].Radius;
+                    ImGui.SliderFloat("Radius", ref uiradius, 1E6f, 1E9f, "%.2e m");
+                    bodies[i].Radius = uiradius;
 
                     System.Numerics.Vector3 uicolour = bodies[i].Colour.GetNumericsVector3();
                     ImGui.ColorEdit3("Colour", ref uicolour);
@@ -285,12 +290,12 @@ internal class Simulation
 
                     if (!simulationPaused) ImGui.BeginDisabled();
                     System.Numerics.Vector3 uivelocity = bodies[i].Vel.GetNumericsVector3();
-                    ImGui.DragFloat3("Velocity", ref uivelocity, 0.05f);
+                    ImGui.DragFloat3("Velocity", ref uivelocity, 10000f, 0f, 1000000f, "%.1e m/s");
                     bodies[i].Vel = new vec3(uivelocity);
                     UITooltip("Can only be adjusted when the simulation is paused");
 
                     System.Numerics.Vector3 uiposition = bodies[i].Pos.GetNumericsVector3();
-                    ImGui.DragFloat3("Position", ref uiposition, 0.05f);
+                    ImGui.DragFloat3("Position", ref uiposition, 1E9f, 0f, 1E12f, "%.1e m");
                     bodies[i].Pos = new vec3(uiposition);
                     UITooltip("Can only be adjusted when the simulation is paused");
                     if (!simulationPaused) ImGui.EndDisabled();

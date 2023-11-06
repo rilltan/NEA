@@ -65,7 +65,7 @@ internal class Camera
         for (int i = 0; i < 3; i++) result[i] = Right[i];
         for (int i = 0; i < 3; i++) result[i + 4] = Up[i];
         for (int i = 0; i < 3; i++) result[i + 8] = -Front[i];
-        result = result * Translate(new mat4(1f), new vec3(-Pos[0], -Pos[1], -Pos[2]));
+        result = result * Translate(new mat4(1f), SimPosToRenderPos(new vec3(-Pos[0], -Pos[1], -Pos[2])));
         return result;
     }
     private void UpdateVectors()
