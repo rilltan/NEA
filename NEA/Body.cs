@@ -39,7 +39,7 @@ internal class Body
     }
     public void UpdateVelAndAcc(ref List<Body> bodies, float deltaTime)
     {
-        double[] forceVec = new double[3];
+        double[] forceVecDouble = new double[3];
         double forceMagnitude;
         vec3 distanceVec;
         float distanceMagnitude;
@@ -50,12 +50,18 @@ internal class Body
                 distanceVec = body.Pos - Pos;
                 distanceMagnitude = distanceVec.GetMagnitude();
                 forceMagnitude = G * Mass * body.Mass / (distanceMagnitude*distanceMagnitude);
-                for (int i = 0; i < 3; i++) forceVec[i] += forceMagnitude * (distanceVec[i]/distanceMagnitude);
+                for (int i = 0; i < 3; i++) forceVecDouble[i] += forceMagnitude * (distanceVec[i]/distanceMagnitude);
             }
         }
 
-        for (int i = 0; i < 3; i++) Vel[i] += 0.5f * (Acc[i] + (float)(forceVec[i] / Mass)) * deltaTime;
-        for (int i = 0; i < 3; i++) Acc[i] = (float)(forceVec[i] / Mass);
+        for (int i = 0; i < 3; i++)
+        {
+            Vel[i] += 0.5f * (Acc[i] + (float)(forceVecDouble[i] / Mass)) * deltaTime;
+        }
+        for (int i = 0; i < 3; i++)
+        {
+            Acc[i] = (float)(forceVecDouble[i] / Mass);
+        }
     }
     public int GetCollidingBody(ref List<Body> bodies)
     {

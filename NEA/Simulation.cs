@@ -13,7 +13,7 @@ internal class Simulation
     private Camera camera;
     private ImGuiController UIController;
 
-    private MouseCallback mouseCallback;
+    private MouseCallback mouseScrollCallback;
 
     private int focussedBodyID;
     private MouseButton[] mouseButtonsToCheck = new MouseButton[] { MouseButton.Left, MouseButton.Right, MouseButton.Middle };
@@ -31,15 +31,17 @@ internal class Simulation
         window = simulationWindow;
         screenWidth = width;
         screenHeight = height;
+
         renderer = new SpaceRenderer(0, 0, 800, screenHeight);
         bodies = new List<Body>();
         camera = new Camera(new vec3(0, 0, 0), 0, DegreesToRadians(89), 5E11f);
-        mouseCallback = new MouseCallback(OnMouseScroll);
-        Glfw.SetScrollCallback(window, mouseCallback);
+        mouseScrollCallback = new MouseCallback(OnMouseScroll);
+        Glfw.SetScrollCallback(window, mouseScrollCallback);
 
         var context = ImGui.CreateContext();
         ImGui.SetCurrentContext(context);
         UIController = new ImGuiController(ref simulationWindow, screenWidth, screenHeight);
+
         ImGuiStylePtr style = ImGui.GetStyle();
         style.Colors[(int)ImGuiCol.TabActive] = new System.Numerics.Vector4(0f, 0.631f, 0.745f, 1f);
         style.Colors[(int)ImGuiCol.TabHovered] = new System.Numerics.Vector4(0f, 0.836f, 1f, 1f);
@@ -108,7 +110,9 @@ internal class Simulation
                 camera.ChangeTarget(focussedBody.Pos);
             }
         }
+
         renderer.SetViewMatrix(camera.GetViewMatrix());
+
         foreach (Body body in bodies)
         {
             if (body.IsStar) renderer.AddStar(body);
@@ -119,8 +123,8 @@ internal class Simulation
             if (renderForceMarkers) renderer.AddForceMarker(body);
         }
         if (renderGrid) renderer.AddGrid(camera.GetTarget(), 60, 1E10f);
-        renderer.Update();
 
+        renderer.Update();
         ImGui.Render();
         UIController.Render(ImGui.GetDrawData());
 
