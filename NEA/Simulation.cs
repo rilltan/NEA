@@ -413,12 +413,12 @@ internal class Simulation
                     if (!simulationPaused) ImGui.BeginDisabled();
 
                     System.Numerics.Vector3 uivelocity = bodies[i].Vel.GetNumericsVector3();
-                    ImGui.DragFloat3("Velocity", ref uivelocity, 1000f, -100000, 100000f, "%.1e m/s");
+                    ImGui.DragFloat3("Velocity", ref uivelocity, 1000f, -100000, 100000f, "%.2e m/s");
                     bodies[i].Vel = new vec3(uivelocity);
                     UITooltip("Can only be adjusted when the simulation is paused");
 
                     System.Numerics.Vector3 uiposition = bodies[i].Pos.GetNumericsVector3();
-                    ImGui.DragFloat3("Position", ref uiposition, 1E9f, -1E12f, 1E12f, "%.1e m");
+                    ImGui.DragFloat3("Position", ref uiposition, 1E9f, -1E12f, 1E12f, "%.2e m");
                     bodies[i].Pos = new vec3(uiposition);
                     UITooltip("Can only be adjusted when the simulation is paused");
 

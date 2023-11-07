@@ -108,8 +108,8 @@ internal class SpaceRenderer
         GLVertexArray PathVertexArray;
         foreach (Body body in Paths)
         {
-            float[] pathVertices = new float[body.Path.Count * 3];
-            for (int i = 0; i < body.Path.Count; i++)
+            float[] pathVertices = new float[body.Path.CurrentSize * 3];
+            for (int i = 0; i < body.Path.CurrentSize; i++)
             {
                 pathVertices[i * 3] = SimDistanceToRenderDistance(body.Path[i][0]);
                 pathVertices[i * 3 + 1] = SimDistanceToRenderDistance(body.Path[i][1]);
@@ -222,7 +222,7 @@ internal class SpaceRenderer
     }
     public void AddPath(Body body)
     {
-        if (body.Path.Count != 0) Paths.Add(body);
+        if (body.Path.CurrentSize != 0) Paths.Add(body);
     }
     public void AddGrid(vec3 pos, int numberOfRows, float rowWidth)
     {

@@ -4,7 +4,7 @@ using static OpenGL.GL;
 
 class Program
 {
-    private const string TITLE = "Orbital Simulator";
+    private const string TITLE = "Gravity Simulator";
     static void Main(string[] args)
     {
         int screenWidth = 1200;

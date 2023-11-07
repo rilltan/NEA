@@ -1,12 +1,13 @@
-﻿using System;
+﻿using NEA;
+using System;
 
 internal class Body
 {
     private static double G = 6.6743E-11;
     private static int nextId = 0;
 
-    public int id { get; }
-    public List<vec3> Path { get; }
+    public int id { get; private set; }
+    public CircularArray<vec3> Path { get; private set; }
     public vec3 Acc { get; }
     public vec3 Colour { get; set; }
     public float Mass { get; set; }
@@ -27,7 +28,7 @@ internal class Body
         IsStar = isStar;
         id = nextId;
         nextId++;
-        Path = new List<vec3>();
+        Path = new CircularArray<vec3>(2000);
     }
     public void UpdatePos(float deltaTime)
     {
@@ -35,7 +36,7 @@ internal class Body
     }
     public void UpdatePath()
     {
-        Path.Add(new vec3(Pos));
+        Path.AddItem(new vec3(Pos));
     }
     public void UpdateVelAndAcc(ref List<Body> bodies, float deltaTime)
     {
