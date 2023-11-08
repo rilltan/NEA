@@ -26,6 +26,7 @@ internal class Simulation
     private bool simulationPaused;
     private string saveLoadResult;
     private float timeWhenSaveLoad;
+    private int orbitAroundIndex;
     public Simulation(ref Window simulationWindow, int width, int height)
     {
         window = simulationWindow;
@@ -46,6 +47,7 @@ internal class Simulation
         style.Colors[(int)ImGuiCol.TabActive] = new System.Numerics.Vector4(0f, 0.631f, 0.745f, 1f);
         style.Colors[(int)ImGuiCol.TabHovered] = new System.Numerics.Vector4(0f, 0.836f, 1f, 1f);
         style.Colors[(int)ImGuiCol.Tab] = new System.Numerics.Vector4(0.219f, 0.18f, 0.418f, 1f);
+        style.Colors[(int)ImGuiCol.ModalWindowDimBg] = new System.Numerics.Vector4(0f, 0f, 0f, 0f);
 
         renderPaths = true;
         renderGrid = true;
@@ -381,7 +383,7 @@ internal class Simulation
 
         if (!simulationPaused) ImGui.EndDisabled();
 
-        if (ImGui.BeginTabBar("tab_bar"))
+        if (ImGui.BeginTabBar("tab_bar", ImGuiTabBarFlags.AutoSelectNewTabs))
         {
             for (int i = 0; i < bodies.Count; i++)
             {
@@ -422,6 +424,11 @@ internal class Simulation
                     bodies[i].Pos = new vec3(uiposition);
                     UITooltip("Can only be adjusted when the simulation is paused");
 
+                    if (ImGui.Button("Set orbit"))
+                        ImGui.OpenPopup("Set Orbit");
+                    UITooltip("Can only be used when the simulation is paused");
+                    UISetOrbit(bodies[i]);
+
                     if (!simulationPaused) ImGui.EndDisabled();
 
                     if (ImGui.Button("Delete"))
@@ -435,4 +442,39 @@ internal class Simulation
             ImGui.EndTabBar();
         }
     }
+    private void UISetOrbit(Body orbitingBody)
+    {
+        bool isOpen = true;
+        ImGui.SetNextWindowPos(new System.Numerics.Vector2(screenWidth - 200, screenHeight / 2), ImGuiCond.Always, new System.Numerics.Vector2(0.5f, 0.5f));
+        ImGui.SetNextWindowSize(new System.Numerics.Vector2(350, screenHeight/2), ImGuiCond.Always);
+        if (ImGui.BeginPopupModal("Set Orbit", ref isOpen , ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse))
+        {
+            string[] orbitAroundOptions = new string[bodies.Count - 1];
+            int i = 0;
+            foreach (Body body in bodies)
+            {
+                if (body != orbitingBody)
+                {
+                    orbitAroundOptions[i] = body.Name;
+                    i++;
+                }
+            }
+            ImGui.Combo("Orbit around", ref orbitAroundIndex, orbitAroundOptions, orbitAroundOptions.Length);
+
+            float radius
+
+            if (ImGui.Button("Confirm"))
+            {
+                ImGui.CloseCurrentPopup();
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Button("Cancel"))
+                ImGui.CloseCurrentPopup();
+            ImGui.EndPopup();
+
+        }
+    }
+        
 }

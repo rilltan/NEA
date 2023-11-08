@@ -1,5 +1,6 @@
 ﻿using NEA;
 using System;
+using static MathsOperations;
 
 internal class Body
 {
@@ -80,5 +81,11 @@ internal class Body
             }
         }
         return -1;
+    }
+    public void SetOrbit(Body primary, float eccentricity, float semiMajorAxis, float inclination, float ascendingNodeLongitude, float argumentOfPeriapsis)
+    {
+        vec3 orbitalPos = new vec3(1f, 0f, 0f);
+        float orbitalSpeedY = (float)Math.Sqrt(G * primary.Mass * semiMajorAxis) / (semiMajorAxis * (1 - eccentricity)) * (float)Math.Sqrt(1 - eccentricity * eccentricity);
+        vec3 orbitalVel = new vec3(0f, orbitalSpeedY, 0f);
     }
 }
