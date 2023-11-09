@@ -10,7 +10,8 @@ internal class vec3
     public vec3(float val)
     {
         data = new float[3];
-        for (int i = 0; i < 3; i++) data[i] = val;
+        for (int i = 0; i < 3; i++)
+            data[i] = val;
     }
     public vec3(float f1, float f2, float f3)
     {
@@ -19,15 +20,11 @@ internal class vec3
         data[1] = f2;
         data[2] = f3;
     }
-    public vec3(float[] vals)
-    {
-        data = new float[3];
-        for (int i = 0; i < 3; i++) data[i] = vals[i];
-    }
     public vec3(vec3 vector)
     {
         data = new float[3];
-        for (int i = 0; i < 3; i++) data[i] = vector[i];
+        for (int i = 0; i < 3; i++)
+            data[i] = vector[i];
     }
     public vec3(System.Numerics.Vector3 vector)
     {
@@ -69,11 +66,6 @@ internal class vec4
     {
         data = new float[4];
     }
-    public vec4(float val)
-    {
-        data = new float[4];
-        for (int i = 0; i < 4; i++) data[i] = val;
-    }
     public vec4(float f1, float f2, float f3, float f4)
     {
         data = new float[4];
@@ -81,16 +73,6 @@ internal class vec4
         data[1] = f2;
         data[2] = f3;
         data[3] = f4;
-    }
-    public vec4(float[] vals)
-    {
-        data = new float[4];
-        for (int i = 0; i < 4; i++) data[i] = vals[i];
-    }
-    public vec4(vec4 vector)
-    {
-        data = new float[4];
-        for (int i = 0; i < 4; i++) data[i] = vector[i];
     }
     public float this[int i]
     {

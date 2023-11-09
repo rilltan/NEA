@@ -4,7 +4,7 @@ internal static class MathsOperations
 {
     public static mat4 Translate(mat4 matrix, vec3 translationVector)
     {
-        mat4 result = new mat4(1.0f);
+        mat4 result = new mat4(1f);
         result[3] = translationVector[0];
         result[7] = translationVector[1];
         result[11] = translationVector[2];
@@ -12,7 +12,7 @@ internal static class MathsOperations
     }
     public static mat4 Scale(mat4 matrix, vec3 scaleVector)
     {
-        mat4 result = new mat4(1.0f);
+        mat4 result = new mat4(1f);
         result[0] = scaleVector[0];
         result[5] = scaleVector[1];
         result[10] = scaleVector[2];
@@ -50,26 +50,28 @@ internal static class MathsOperations
     }
     public static mat4 GeneratePerspectiveMatrix(float fieldOfView, float aspectRatio, float near, float far)
     {
-        float top = near * (float)Math.Tan(0.5 * fieldOfView);
+        float top = near * (float)Math.Tan(0.5f * fieldOfView);
         float right = aspectRatio * top;
         mat4 result = new mat4(0f);
-        result[0] = near/right;
-        result[5] = near/top;
-        result[10] = (-near-far) / (far-near);
-        result[11] = (-1*2*far*near) / (far-near);
+        result[0] = near / right;
+        result[5] = near / top;
+        result[10] = (-near - far) / (far - near);
+        result[11] = -2f * far * near / (far - near);
         result[14] = -1f;
         return result;
     }
     public static float DegreesToRadians(float degrees)
     {
         return degrees * (float)Math.PI / 180f;
-            
     }
     public static vec3 Normalize(vec3 vector)
     {
         vec3 result = new vec3();
-        float mag = (float)Math.Sqrt(vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[2]);
-        for (int i = 0; i < 3; i++) result[i] = vector[i] / mag;
+
+        float mag = vector.GetMagnitude();
+        for (int i = 0; i < 3; i++)
+            result[i] = vector[i] / mag;
+
         return result;
     }
     public static vec3 Cross(vec3 x, vec3 y)
@@ -89,7 +91,6 @@ internal static class MathsOperations
     {
         Mesh result = new Mesh();
 
-        // maths to generate all the vertices
         vec3[,] vertexLookup = new vec3[columns, rows - 1];
         for (int y = 0; y < rows - 1; y++)
         {
@@ -101,7 +102,6 @@ internal static class MathsOperations
         vec3 topVertex = new vec3(0, 1, 0);
         vec3 bottomVertex = new vec3(0, -1, 0);
 
-        // assigning vertices to mesh for top and bottom row
         for (int x = 0; x < columns; x++)
         {
             result.Add(new Tri(
@@ -114,7 +114,7 @@ internal static class MathsOperations
                 new Vertex(vertexLookup[(x + 1) % columns, rows - 2]),
                 new Vertex(bottomVertex)));
         }
-        //assigning vertices to mesh for middle rows
+
         for (int y = 0; y < rows - 2; y++)
         {
             for (int x = 0; x < columns; x++)
@@ -138,7 +138,7 @@ internal static class MathsOperations
         vec3 vertex;
         for (int i = 0; i <= numberOfSides; i++)
         {
-            vertex = SphericalToXYZ((float)i / numberOfSides * 2f * (float)Math.PI, 0);
+            vertex = SphericalToXYZ((float)i / numberOfSides * 2f * (float)Math.PI, 0f);
             result[i * 3] = vertex[0];
             result[i * 3 + 1] = vertex[1];
             result[i * 3 + 2] = vertex[2];

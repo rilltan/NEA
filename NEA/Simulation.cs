@@ -34,7 +34,7 @@ internal class Simulation
         screenWidth = width;
         screenHeight = height;
 
-        renderer = new SpaceRenderer(0, 0, 800, screenHeight);
+        renderer = new SpaceRenderer(0, 0, width - 400, screenHeight);
         bodies = new List<Body>();
         camera = new Camera(new vec3(0, 0, 0), 0, DegreesToRadians(89), 5E11f);
         mouseScrollCallback = new MouseCallback(OnMouseScroll);
@@ -49,6 +49,7 @@ internal class Simulation
         style.Colors[(int)ImGuiCol.TabHovered] = new System.Numerics.Vector4(0f, 0.836f, 1f, 1f);
         style.Colors[(int)ImGuiCol.Tab] = new System.Numerics.Vector4(0.219f, 0.18f, 0.418f, 1f);
         style.Colors[(int)ImGuiCol.ModalWindowDimBg] = new System.Numerics.Vector4(0f, 0f, 0f, 0f);
+        style.Colors[(int)ImGuiCol.PopupBg] = new System.Numerics.Vector4(0.1f, 0.1f, 0.1f, 1f);
 
         renderPaths = true;
         renderGrid = true;
@@ -65,12 +66,14 @@ internal class Simulation
         saveLoadResult = "";
 
         focussedBodyID = -1;
+        currentOrbitAroundIndex = -1;
     }
     public void Update()
     {
         currentTime = (float)Glfw.Time;
         deltaTime = currentTime - prevTime;
-        if (deltaTime > 0.1) deltaTime = 0;
+        if (deltaTime > 0.1)
+            deltaTime = 0;
 
         UIController.NewFrame();
         UIController.ProcessEvent();
@@ -87,22 +90,18 @@ internal class Simulation
             foreach (Body body in bodies)
             {
                 body.UpdatePos(deltaTime * simulationSpeed);
-                if (frameNumber % 5 == 1) body.UpdatePath();
+                if (frameNumber % 5 == 1)
+                    body.UpdatePath();
             }
+
             foreach (Body body in bodies)
-            {
                 body.UpdateVelAndAcc(ref bodies, deltaTime * simulationSpeed);
-            }
 
             List<int> bodiesToDelete = new List<int>();
             foreach (Body body in bodies)
-            {
                 bodiesToDelete.Add(body.GetCollidingBody(ref bodies));
-            }
             foreach (int id in bodiesToDelete)
-            {
                 DeleteBodyByID(id);
-            }
         }
         
         if (focussedBodyID != -1)
@@ -118,14 +117,26 @@ internal class Simulation
 
         foreach (Body body in bodies)
         {
-            if (body.IsStar) renderer.AddStar(body);
-            else renderer.AddPlanet(body);
+            if (body.IsStar)
+                renderer.AddStar(body);
+            else
+                renderer.AddPlanet(body);
 
-            if (renderPaths) renderer.AddPath(body);
-            if (renderVelocityMarkers) renderer.AddVelocityMarker(body);
-            if (renderForceMarkers) renderer.AddForceMarker(body);
+            if (renderPaths)
+                renderer.AddPath(body);
+
+            if (renderVelocityMarkers)
+                renderer.AddVelocityMarker(body);
+
+            if (renderForceMarkers)
+                renderer.AddForceMarker(body);
         }
-        if (renderGrid) renderer.AddGrid(camera.GetTarget(), 60, 1E10f);
+
+        if (renderGrid)
+            renderer.AddGrid(camera.GetTarget(), 60, 1E10f);
+
+        if (currentOrbitAroundIndex != -1)
+            renderer.AddOrbit(currentOrbitalElements, bodies[currentOrbitAroundIndex]);
 
         renderer.Update();
         ImGui.Render();
@@ -139,17 +150,13 @@ internal class Simulation
     private void DeleteBodyByListIndex(int index)
     {
         if (bodies[index].id == focussedBodyID)
-        {
             focussedBodyID = -1;
-        }
         bodies.RemoveAt(index);
     }
     private void DeleteBodyByID(int id)
     {
         if (id == focussedBodyID)
-        {
             focussedBodyID = -1;
-        }
         bodies.RemoveAll(body => body.id == id);
     }
     private void OnMouseScroll(IntPtr window, double x, double y)
@@ -160,9 +167,7 @@ internal class Simulation
     private void ProcessKeyboardInput()
     {
         if (Glfw.GetKey(window, Keys.Escape) == InputState.Press)
-        {
             Glfw.SetWindowShouldClose(window, true);
-        }
     }
     private void ProcessMouseInput()
     {
@@ -179,9 +184,7 @@ internal class Simulation
         {
             Glfw.SetInputMode(window, InputMode.Cursor, (int)CursorMode.Disabled);
             if (prevCursorX != cursorX || prevCursorY != cursorY)
-            {
                 camera.ChangeAngles((float)(cursorX - prevCursorX), (float)(prevCursorY - cursorY));
-            }
         }
         else if (prevMouseButtons[MouseButton.Right])
         {
@@ -195,17 +198,14 @@ internal class Simulation
         foreach (Body body in bodies)
         {
             for (int i = 0; i < 3; i++)
-            {
                 result += body.Pos[i] + ",";
-            }
+
             for (int i = 0; i < 3; i++)
-            {
                 result += body.Vel[i] + ",";
-            }
+
             for (int i = 0; i < 3; i++)
-            {
                 result += body.Colour[i] + ",";
-            }
+
             result += body.Mass + ",";
             result += body.Radius + ",";
             result += body.Name + ",";
@@ -224,9 +224,8 @@ internal class Simulation
             string[] bodyDataStrings = line.Split(',', StringSplitOptions.RemoveEmptyEntries);
             float[] bodyData = new float[bodyDataStrings.Length - 2];
             for (int i = 0; i < bodyDataStrings.Length - 2; i++)
-            {
                 bodyData[i] = float.Parse(bodyDataStrings[i]);
-            }
+
             bodies.Add(new Body(
                 new vec3(bodyData[0], bodyData[1], bodyData[2]),
                 new vec3(bodyData[3], bodyData[4], bodyData[5]),
@@ -234,8 +233,7 @@ internal class Simulation
                 bodyData[9],
                 bodyData[10],
                 bodyDataStrings[11],
-                bool.Parse(bodyDataStrings[12]))
-            );
+                bool.Parse(bodyDataStrings[12])));
         }
     }
     private void ProcessUI()
@@ -267,14 +265,14 @@ internal class Simulation
     {
         ImGui.SameLine();
         ImGui.TextDisabled("(?)");
-        if (ImGui.IsItemHovered(ImGuiHoveredFlags.DelayNormal | ImGuiHoveredFlags.AllowWhenDisabled)) ImGui.SetTooltip(text);
+        if (ImGui.IsItemHovered(ImGuiHoveredFlags.DelayNormal | ImGuiHoveredFlags.AllowWhenDisabled))
+            ImGui.SetTooltip(text);
     }
     private void UISaveAndLoad()
     {
         if (ImGui.Button("Load inner solar system"))
-        {
             LoadSimulationFromText("0,0,0,0,0,0,0.9190636,0.9362745,0.40847272,1.9728E+30,696342000,Sun,True\n1.48E+11,0,0,0,0,29784,0,0.38235307,1,5.97E+24,6378000,Earth,False\n5.8E+10,0,0,0,0,47000,0.2647059,0.2647059,0.2647059,3.285E+23,2439700,Mercury,False\n1.082E+11,0,0,0,0,35021,0.9607843,0.48039216,0,4.867E+24,6051800,Venus,False\n2.3E+11,0,0,0,0,24077,0.9558824,0.014057107,0.014057107,6.4171E+23,3389500,Mars,False\n");
-        }
+
         if (ImGui.Button("Save simulation"))
         {
             timeWhenSaveLoad = currentTime;
@@ -302,8 +300,10 @@ internal class Simulation
                 saveLoadResult = "Load failed: " + e.Message;
             }
         }
-        if (currentTime < timeWhenSaveLoad + 3) ImGui.TextWrapped(saveLoadResult);
-        else ImGui.NewLine();
+        if (currentTime < timeWhenSaveLoad + 3)
+            ImGui.TextWrapped(saveLoadResult);
+        else
+            ImGui.NewLine();
     }
     private void UICameraFocus()
     {
@@ -311,13 +311,17 @@ internal class Simulation
         cameraFocusOptions[bodies.Count] = "[none]";
 
         int currentFocusOption = bodies.FindIndex(body => body.id == focussedBodyID);
-        if (currentFocusOption == -1) currentFocusOption = bodies.Count;
+        if (currentFocusOption == -1)
+            currentFocusOption = bodies.Count;
 
-        for (int i = 0; i < bodies.Count; i++) cameraFocusOptions[i] = bodies[i].Name;
+        for (int i = 0; i < bodies.Count; i++)
+            cameraFocusOptions[i] = bodies[i].Name;
         ImGui.Combo("Camera focus", ref currentFocusOption, cameraFocusOptions, cameraFocusOptions.Length);
 
-        if (currentFocusOption == bodies.Count) focussedBodyID = -1;
-        else focussedBodyID = bodies[currentFocusOption].id;
+        if (currentFocusOption == bodies.Count)
+            focussedBodyID = -1;
+        else
+            focussedBodyID = bodies[currentFocusOption].id;
     }
     private void UIInfoToggles()
     {
@@ -351,9 +355,7 @@ internal class Simulation
     private void UISimulationSpeed()
     {
         if (ImGui.Button("Pause / Resume"))
-        {
             simulationPaused = !simulationPaused;
-        }
 
         if (simulationPaused) ImGui.BeginDisabled();
 
@@ -363,11 +365,13 @@ internal class Simulation
 
         UITooltip("Can only be adjusted when the simulation is running");
 
-        if (simulationPaused) ImGui.EndDisabled();
+        if (simulationPaused)
+            ImGui.EndDisabled();
     }
     private void UIEditBodies()
     {
-        if (!simulationPaused) ImGui.BeginDisabled();
+        if (!simulationPaused)
+            ImGui.BeginDisabled();
 
         if (ImGui.Button("Add body"))
         {
@@ -377,12 +381,12 @@ internal class Simulation
                 new vec3(1f, 1f, 1f),
                 1E24f,
                 1E7f,
-                $"body #{bodies.Count}"
-            ));
+                $"body #{bodies.Count}"));
         }
         UITooltip("Can only be used when the simulation is paused");
 
-        if (!simulationPaused) ImGui.EndDisabled();
+        if (!simulationPaused)
+            ImGui.EndDisabled();
 
         if (ImGui.BeginTabBar("tab_bar", ImGuiTabBarFlags.AutoSelectNewTabs | ImGuiTabBarFlags.FittingPolicyScroll))
         {
@@ -413,7 +417,8 @@ internal class Simulation
                     ImGui.ColorEdit3("Colour", ref uicolour);
                     bodies[i].Colour = new vec3(uicolour);
 
-                    if (!simulationPaused) ImGui.BeginDisabled();
+                    if (!simulationPaused)
+                        ImGui.BeginDisabled();
 
                     System.Numerics.Vector3 uivelocity = bodies[i].Vel.GetNumericsVector3();
                     ImGui.DragFloat3("Velocity", ref uivelocity, 1000f, -100000, 100000f, "%.2e m/s");
@@ -434,12 +439,11 @@ internal class Simulation
                     UITooltip("Can only be used when the simulation is paused");
                     UISetOrbit(bodies[i]);
 
-                    if (!simulationPaused) ImGui.EndDisabled();
+                    if (!simulationPaused)
+                        ImGui.EndDisabled();
 
                     if (ImGui.Button("Delete"))
-                    {
                         DeleteBodyByListIndex(i);
-                    }
 
                     ImGui.EndTabItem();
                 }
@@ -452,47 +456,50 @@ internal class Simulation
         bool isOpen = true;
         ImGui.SetNextWindowPos(new System.Numerics.Vector2(screenWidth - 200, screenHeight / 2), ImGuiCond.Always, new System.Numerics.Vector2(0.5f, 0.5f));
         ImGui.SetNextWindowSize(new System.Numerics.Vector2(350, screenHeight/2), ImGuiCond.Always);
-        if (ImGui.BeginPopupModal("Set Orbit", ref isOpen , ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse))
+        if (ImGui.BeginPopupModal("Set Orbit", ref isOpen , ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar))
         {
             string[] orbitAroundOptions = new string[bodies.Count];
             for (int i = 0; i < bodies.Count; i++)
-            {
                 orbitAroundOptions[i] = bodies[i].Name;
-            }
             ImGui.Combo("Orbit around", ref currentOrbitAroundIndex, orbitAroundOptions, orbitAroundOptions.Length);
             if (currentOrbitAroundIndex == bodies.IndexOf(orbitingBody))
-            {
                 currentOrbitAroundIndex = -1;
-            }
 
-            ImGui.SliderFloat("Semi-major axis", ref currentOrbitalElements.SemiMajorAxis, 0, 1E12f, "%.4e m");
-            ImGui.SliderFloat("Eccentricity", ref currentOrbitalElements.Eccentricity, 0f, 0.99f);
-            ImGui.SliderAngle("Inclination", ref currentOrbitalElements.Inclination);
-            ImGui.SliderAngle("Longitude of the ascending node", ref currentOrbitalElements.AscendingNodeLongitude);
-            ImGui.SliderAngle("Argument of periapsis", ref currentOrbitalElements.PeriapsisArgument);
-
-            if (currentOrbitAroundIndex != -1)
-                renderer.AddOrbit(currentOrbitalElements, bodies[currentOrbitAroundIndex]);
+            ImGui.Text("Semi-major axis");
+            ImGui.SliderFloat("###SemiMajorAxis", ref currentOrbitalElements.SemiMajorAxis, 0f, 1E12f, "%.4e m");
+            ImGui.Text("Eccentricity");
+            ImGui.SliderFloat("###Eccentricity", ref currentOrbitalElements.Eccentricity, 0f, 0.99f);
+            ImGui.Text("Inclination");
+            ImGui.SliderFloat("###Inclination", ref currentOrbitalElements.Inclination, 0f, (float)Math.Tau);
+            ImGui.Text("Longitude of the ascending node");
+            ImGui.SliderFloat("###AscendingNodeLongitude", ref currentOrbitalElements.AscendingNodeLongitude, 0f, (float)Math.Tau);
+            ImGui.Text("Argument of periapsis");
+            ImGui.SliderFloat("###PeriapsisArgument", ref currentOrbitalElements.PeriapsisArgument, 0f, (float)Math.Tau);
 
             if (currentOrbitAroundIndex == -1)
                 ImGui.BeginDisabled();
+
             if (ImGui.Button("Confirm"))
             {
                 orbitingBody.SetOrbit(bodies[currentOrbitAroundIndex], currentOrbitalElements);
+                currentOrbitAroundIndex = -1;
                 ImGui.CloseCurrentPopup();
             }
+
             if (currentOrbitAroundIndex == -1)
                 ImGui.EndDisabled();
 
             ImGui.SameLine();
 
             if (ImGui.Button("Cancel"))
+            {
+                currentOrbitAroundIndex = -1;
                 ImGui.CloseCurrentPopup();
+            }
 
             ImGui.TextWrapped("This will only be accurate if the body being orbited around is stationary and has a much greater mass than the orbiting body");
-            ImGui.EndPopup();
 
+            ImGui.EndPopup();
         }
     }
-        
 }

@@ -259,7 +259,8 @@ internal class SpaceRenderer
     }
     public void AddPath(Body body)
     {
-        if (body.Path.CurrentSize != 0) Paths.Add(body);
+        if (body.Path.CurrentSize != 0)
+            Paths.Add(body);
     }
     public void AddGrid(vec3 pos, int numberOfRows, float rowWidth)
     {

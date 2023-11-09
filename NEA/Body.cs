@@ -33,7 +33,8 @@ internal class Body
     }
     public void UpdatePos(float deltaTime)
     {
-        for (int i = 0; i < 3; i++) Pos[i] += Vel[i]*deltaTime + 0.5f*Acc[i]*deltaTime*deltaTime;
+        for (int i = 0; i < 3; i++)
+            Pos[i] += Vel[i]*deltaTime + 0.5f*Acc[i]*deltaTime*deltaTime;
     }
     public void UpdatePath()
     {
@@ -52,18 +53,15 @@ internal class Body
                 distanceVec = body.Pos - Pos;
                 distanceMagnitude = distanceVec.GetMagnitude();
                 forceMagnitude = G * Mass * body.Mass / (distanceMagnitude*distanceMagnitude);
-                for (int i = 0; i < 3; i++) forceVecDouble[i] += forceMagnitude * (distanceVec[i]/distanceMagnitude);
+                for (int i = 0; i < 3; i++)
+                    forceVecDouble[i] += forceMagnitude * (distanceVec[i]/distanceMagnitude);
             }
         }
 
         for (int i = 0; i < 3; i++)
-        {
             Vel[i] += 0.5f * (Acc[i] + (float)(forceVecDouble[i] / Mass)) * deltaTime;
-        }
         for (int i = 0; i < 3; i++)
-        {
             Acc[i] = (float)(forceVecDouble[i] / Mass);
-        }
     }
     public int GetCollidingBody(ref List<Body> bodies)
     {
@@ -75,8 +73,10 @@ internal class Body
                 distance = (body.Pos - this.Pos).GetMagnitude();
                 if (distance < body.Radius + this.Radius)
                 {
-                    if (this.Mass < body.Mass) return this.id;
-                    else return body.id;
+                    if (this.Mass < body.Mass)
+                        return this.id;
+                    else
+                        return body.id;
                 }
             }
         }
@@ -86,24 +86,21 @@ internal class Body
     {
         float sma = elements.SemiMajorAxis;
         float ecc = elements.Eccentricity;
-        float inc = elements.Inclination;
-        float pa = elements.PeriapsisArgument;
-        float anl = elements.AscendingNodeLongitude;
 
         vec4 orbitalPos = new vec4(sma * (1 - ecc), 0f, 0f, 0f);
-        float orbitalSpeedZ = (float)Math.Sqrt(G * primary.Mass * sma) / (sma * (1 - ecc)) * (float)Math.Sqrt(1 - ecc * ecc);
+        float orbitalSpeedZ = (float)Math.Sqrt(G * primary.Mass * sma) / (sma * (1f - ecc)) * (float)Math.Sqrt(1 - ecc * ecc);
         vec4 orbitalVel = new vec4(0f, 0f, orbitalSpeedZ, 0f);
 
-        mat4 orbitalToInertial = Rotate(new mat4(1f), pa, new vec3(0f, 1f, 0f));
-        orbitalToInertial = Rotate(orbitalToInertial, inc, new vec3(1f, 0f, 0f));
-        orbitalToInertial = Rotate(orbitalToInertial, anl, new vec3(0f, 1f, 0f));
+        mat4 orbitalToInertial = Rotate(new mat4(1f), elements.PeriapsisArgument, new vec3(0f, 1f, 0f));
+        orbitalToInertial = Rotate(orbitalToInertial, elements.Inclination, new vec3(1f, 0f, 0f));
+        orbitalToInertial = Rotate(orbitalToInertial, elements.AscendingNodeLongitude, new vec3(0f, 1f, 0f));
 
-        vec4 actualPos = orbitalToInertial * orbitalPos;
+        vec4 cartesianPos = orbitalToInertial * orbitalPos;
         vec4 actualVel = orbitalToInertial * orbitalVel;
 
         for (int i = 0; i < 3; i++)
         {
-            Pos[i] = actualPos[i];
+            Pos[i] = cartesianPos[i];
             Vel[i] = actualVel[i];
         }
         Path.Clear();
