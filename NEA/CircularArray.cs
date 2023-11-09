@@ -33,6 +33,12 @@ internal class CircularArray<T>
             StartIndex = (StartIndex + 1) % MaxSize;
         }
     }
+    public void Clear()
+    {
+        StartIndex = 0;
+        EndIndex = -1;
+        CurrentSize = 0;
+    }
     public T this[int i]
     {
         get

@@ -25,7 +25,7 @@ internal class mat4
     public mat4(mat4 matrix)
     {
         data = new float[16];
-        for (int i = 0; i < 16; i++) data[i] = matrix.data[i];
+        for (int i = 0; i < 16; i++) data[i] = matrix[i];
     }
     public float this[int i]
     {
@@ -35,13 +35,13 @@ internal class mat4
     public static mat4 operator +(mat4 x, mat4 y)
     {
         mat4 result = new mat4();
-        for (int i = 0; i < 16; i++) result.data[i] = x.data[i] + y.data[i];
+        for (int i = 0; i < 16; i++) result[i] = x[i] + y[i];
         return result;
     }
     public static mat4 operator -(mat4 x, mat4 y)
     {
         mat4 result = new mat4();
-        for (int i = 0; i < 16; i++) result.data[i] = x.data[i] - y.data[i];
+        for (int i = 0; i < 16; i++) result.data[i] = x[i] - y[i];
         return result;
     }
     public static mat4 operator *(mat4 x, mat4 y)
@@ -55,9 +55,9 @@ internal class mat4
                 val = 0f;
                 for (int k = 0; k < 4; k++)
                 {
-                    val += x.data[4*i + k] * y.data[j + 4*k];
+                    val += x.data[4 * i + k] * y.data[j + 4 * k];
                 }
-                result.data[4*i + j] = val;
+                result.data[4 * i + j] = val;
             }
         }
         return result;

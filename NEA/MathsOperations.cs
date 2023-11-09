@@ -85,7 +85,7 @@ internal static class MathsOperations
 
         return result;
     }
-    public static Mesh GenerateSphereVertices(int columns, int rows)
+    public static Mesh GenerateSphereMesh(int columns, int rows)
     {
         Mesh result = new Mesh();
 
@@ -132,35 +132,48 @@ internal static class MathsOperations
 
         return result;
     }
+    public static float[] GenerateCircleVertices(int numberOfSides)
+    {
+        float[] result = new float[(numberOfSides + 1) * 3];
+        vec3 vertex;
+        for (int i = 0; i <= numberOfSides; i++)
+        {
+            vertex = SphericalToXYZ((float)i / numberOfSides * 2f * (float)Math.PI, 0);
+            result[i * 3] = vertex[0];
+            result[i * 3 + 1] = vertex[1];
+            result[i * 3 + 2] = vertex[2];
+        }
+        return result;
+    }
     public static float[] GenerateGridVertices(int rows)
     {
-        float[] output = new float[12 * (rows-1)];
+        float[] result = new float[12 * (rows-1)];
         float x;
         float z;
         for (int i = 0; i <  rows-1; i++)
         {
             z = 1f - 2f * (i + 1f) / (rows);
-            output[6 * i] = 1f;
-            output[6 * i + 1] = 0f;
-            output[6 * i + 2] = z;
+            result[6 * i] = 1f;
+            result[6 * i + 1] = 0f;
+            result[6 * i + 2] = z;
 
-            output[6 * i + 3] = -1f;
-            output[6 * i + 4] = 0f;
-            output[6 * i + 5] = z;
+            result[6 * i + 3] = -1f;
+            result[6 * i + 4] = 0f;
+            result[6 * i + 5] = z;
         }
 
         for (int i = 0; i < rows-1; i++)
         {
             x = 1f - 2f * (i + 1f) / (rows);
-            output[(rows-1) * 6 + 6 * i] = x;
-            output[(rows - 1) * 6 + 6 * i + 1] = 0f;
-            output[(rows - 1) * 6 + 6 * i + 2] = 1f;
+            result[(rows-1) * 6 + 6 * i] = x;
+            result[(rows - 1) * 6 + 6 * i + 1] = 0f;
+            result[(rows - 1) * 6 + 6 * i + 2] = 1f;
 
-            output[(rows - 1) * 6 + 6 * i + 3] = x;
-            output[(rows - 1) * 6 + 6 * i + 4] = 0f;
-            output[(rows - 1) * 6 + 6 * i + 5] = -1f;
+            result[(rows - 1) * 6 + 6 * i + 3] = x;
+            result[(rows - 1) * 6 + 6 * i + 4] = 0f;
+            result[(rows - 1) * 6 + 6 * i + 5] = -1f;
         }
-        return output;
+        return result;
     }
     public static float SimDistanceToRenderDistance(float x)
     {

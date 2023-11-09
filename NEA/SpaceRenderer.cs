@@ -3,6 +3,7 @@ using static OpenGL.GL;
 using static MathsOperations;
 using NEA;
 using System.Reflection;
+using System.Xml.Schema;
 
 internal class SpaceRenderer
 {
@@ -10,11 +11,16 @@ internal class SpaceRenderer
     private mat4 Projection, View;
     private List<Body> Stars, Planets, Paths, VelocityMarkers, ForceMarkers;
     private Shader StandardShader, PlanetShader, GridShader;
-    private GLVertexArray SphereVertexArray;
+    private GLVertexArray SphereVertexArray, CircleVertexArray;
+
     private float GridWidth;
     private int GridSize;
     private bool ShouldDrawGrid;
     private vec3 GridPos;
+
+    private vec3 OrbitCentrePos;
+    private OrbitalElements OrbitData;
+    private bool ShouldDrawOrbit;
 
     public int BodyViewScale { get; set; }
     public float VelocityMarkerScale { get; set; }
@@ -38,12 +44,17 @@ internal class SpaceRenderer
         VelocityMarkers = new List<Body>();
         ForceMarkers = new List<Body>();
 
+        ShouldDrawGrid = false;
+        ShouldDrawOrbit = false;
+
         VelocityMarkerScale = 5f;
         ForceMarkerScale = 2f;
         BodyViewScale = 25;
 
-        Mesh sphereMesh = GenerateSphereVertices(20, 10);
+        Mesh sphereMesh = GenerateSphereMesh(20, 10);
         SphereVertexArray = new GLVertexArray(sphereMesh.GetFloats(), new int[] { 3, 3 });
+
+        CircleVertexArray = new GLVertexArray(GenerateCircleVertices(25), new int[] { 3 });
     }
     public void Update()
     {
@@ -63,7 +74,11 @@ internal class SpaceRenderer
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        if (ShouldDrawGrid) RenderGrid();
+        if (ShouldDrawGrid)
+            RenderGrid();
+
+        if (ShouldDrawOrbit)
+            RenderOrbit();
 
         RenderPaths();
 
@@ -77,6 +92,7 @@ internal class SpaceRenderer
         VelocityMarkers.Clear();
         ForceMarkers.Clear();
         ShouldDrawGrid = false;
+        ShouldDrawOrbit = false;
     }
     private void RenderGrid()
     {
@@ -129,9 +145,7 @@ internal class SpaceRenderer
     private void RenderBodies()
     {
         SphereVertexArray.Bind();
-
         mat4 model;
-
 
         StandardShader.Use();
         StandardShader.SetMatrix4("view", View);
@@ -184,8 +198,10 @@ internal class SpaceRenderer
         float[] markerVertices = new float[6];
         foreach (Body body in VelocityMarkers)
         {
-            for (int i = 0; i < 3; i++) markerVertices[i] = SimDistanceToRenderDistance(body.Pos[i]);
-            for (int i = 0; i < 3; i++) markerVertices[i + 3] = SimDistanceToRenderDistance(body.Pos[i] + body.Vel[i] * VelocityMarkerScale * 100000f);
+            for (int i = 0; i < 3; i++)
+                markerVertices[i] = SimDistanceToRenderDistance(body.Pos[i]);
+            for (int i = 0; i < 3; i++)
+                markerVertices[i + 3] = SimDistanceToRenderDistance(body.Pos[i] + body.Vel[i] * VelocityMarkerScale * 100000f);
 
             GLVertexArray markerVertexArray = new GLVertexArray(markerVertices, new int[] { 3 });
             markerVertexArray.Bind();
@@ -199,8 +215,10 @@ internal class SpaceRenderer
 
         foreach (Body body in ForceMarkers)
         {
-            for (int i = 0; i < 3; i++) markerVertices[i] = SimDistanceToRenderDistance(body.Pos[i]);
-            for (int i = 0; i < 3; i++) markerVertices[i + 3] = SimDistanceToRenderDistance(body.Pos[i] + body.Acc[i] * body.Mass * ForceMarkerScale / 1E13f);
+            for (int i = 0; i < 3; i++)
+                markerVertices[i] = SimDistanceToRenderDistance(body.Pos[i]);
+            for (int i = 0; i < 3; i++)
+                markerVertices[i + 3] = SimDistanceToRenderDistance(body.Pos[i] + body.Acc[i] * body.Mass * ForceMarkerScale / 1E13f);
 
             GLVertexArray markerVertexArray = new GLVertexArray(markerVertices, new int[] { 3 });
             markerVertexArray.Bind();
@@ -211,6 +229,25 @@ internal class SpaceRenderer
 
             markerVertexArray.Delete();
         }
+    }
+    private void RenderOrbit()
+    {
+        CircleVertexArray.Bind();
+
+        mat4 model = Scale(new mat4(1.0f), new vec3(1f, 1f, (float)Math.Sin(Math.Acos(OrbitData.Eccentricity))));
+        model = Translate(model, new vec3(-OrbitData.Eccentricity, 0f, 0f));
+        model = Scale(model, new vec3(SimDistanceToRenderDistance(OrbitData.SemiMajorAxis)));
+        model = Rotate(model, OrbitData.PeriapsisArgument, new vec3(0f, 1f, 0f));
+        model = Rotate(model, OrbitData.Inclination, new vec3(1f, 0f, 0f));
+        model = Rotate(model, OrbitData.AscendingNodeLongitude, new vec3(0f, 1f, 0f));
+        model = Translate(model, OrbitCentrePos);
+
+        StandardShader.Use();
+        StandardShader.SetMatrix4("view", View);
+        StandardShader.SetMatrix4("projection", Projection);
+        StandardShader.SetMatrix4("model", model);
+        StandardShader.SetVector4("colour", new vec4(0f, 1f, 0f, 1f));
+        glDrawArrays(GL_LINE_STRIP, 0, CircleVertexArray.Length);
     }
     public void AddPlanet(Body planet)
     {
@@ -238,6 +275,12 @@ internal class SpaceRenderer
     public void AddForceMarker(Body body)
     {
         ForceMarkers.Add(body);
+    }
+    public void AddOrbit(OrbitalElements orbit, Body primary)
+    {
+        ShouldDrawOrbit = true;
+        OrbitData = orbit;
+        OrbitCentrePos = SimPosToRenderPos(primary.Pos);
     }
     public void SetViewMatrix(mat4 view)
     {

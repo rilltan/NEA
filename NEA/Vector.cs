@@ -97,4 +97,19 @@ internal class vec4
         get { return data[i]; }
         set { data[i] = value; }
     }
+    public static vec4 operator *(mat4 m, vec4 v)
+    {
+        vec4 result = new vec4();
+        float val;
+        for (int i = 0; i < 4; i++)
+        {
+            val = 0f;
+            for (int j = 0; j < 4; j++)
+            {
+                val += m[4 * i + j] * v[j];
+            }
+            result[i] = val;
+        }
+        return result;
+    }
 }

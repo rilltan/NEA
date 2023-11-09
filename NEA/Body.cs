@@ -29,7 +29,7 @@ internal class Body
         IsStar = isStar;
         id = nextId;
         nextId++;
-        Path = new CircularArray<vec3>(2000);
+        Path = new CircularArray<vec3>(1000);
     }
     public void UpdatePos(float deltaTime)
     {
@@ -82,10 +82,30 @@ internal class Body
         }
         return -1;
     }
-    public void SetOrbit(Body primary, float eccentricity, float semiMajorAxis, float inclination, float ascendingNodeLongitude, float argumentOfPeriapsis)
+    public void SetOrbit(Body primary, OrbitalElements elements)
     {
-        vec3 orbitalPos = new vec3(1f, 0f, 0f);
-        float orbitalSpeedY = (float)Math.Sqrt(G * primary.Mass * semiMajorAxis) / (semiMajorAxis * (1 - eccentricity)) * (float)Math.Sqrt(1 - eccentricity * eccentricity);
-        vec3 orbitalVel = new vec3(0f, orbitalSpeedY, 0f);
+        float sma = elements.SemiMajorAxis;
+        float ecc = elements.Eccentricity;
+        float inc = elements.Inclination;
+        float pa = elements.PeriapsisArgument;
+        float anl = elements.AscendingNodeLongitude;
+
+        vec4 orbitalPos = new vec4(sma * (1 - ecc), 0f, 0f, 0f);
+        float orbitalSpeedZ = (float)Math.Sqrt(G * primary.Mass * sma) / (sma * (1 - ecc)) * (float)Math.Sqrt(1 - ecc * ecc);
+        vec4 orbitalVel = new vec4(0f, 0f, orbitalSpeedZ, 0f);
+
+        mat4 orbitalToInertial = Rotate(new mat4(1f), pa, new vec3(0f, 1f, 0f));
+        orbitalToInertial = Rotate(orbitalToInertial, inc, new vec3(1f, 0f, 0f));
+        orbitalToInertial = Rotate(orbitalToInertial, anl, new vec3(0f, 1f, 0f));
+
+        vec4 actualPos = orbitalToInertial * orbitalPos;
+        vec4 actualVel = orbitalToInertial * orbitalVel;
+
+        for (int i = 0; i < 3; i++)
+        {
+            Pos[i] = actualPos[i];
+            Vel[i] = actualVel[i];
+        }
+        Path.Clear();
     }
 }

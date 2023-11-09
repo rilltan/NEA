@@ -26,7 +26,8 @@ internal class Simulation
     private bool simulationPaused;
     private string saveLoadResult;
     private float timeWhenSaveLoad;
-    private int orbitAroundIndex;
+    private int currentOrbitAroundIndex;
+    private OrbitalElements currentOrbitalElements;
     public Simulation(ref Window simulationWindow, int width, int height)
     {
         window = simulationWindow;
@@ -86,7 +87,7 @@ internal class Simulation
             foreach (Body body in bodies)
             {
                 body.UpdatePos(deltaTime * simulationSpeed);
-                if (frameNumber % 10 == 1) body.UpdatePath();
+                if (frameNumber % 5 == 1) body.UpdatePath();
             }
             foreach (Body body in bodies)
             {
@@ -344,7 +345,7 @@ internal class Simulation
         }
 
         int uibodyscale = renderer.BodyViewScale;
-        ImGui.SliderInt("Body view scale", ref uibodyscale, 1, 500, $"{uibodyscale}x");
+        ImGui.SliderInt("Body view scale", ref uibodyscale, 1, 100, $"{uibodyscale}x");
         renderer.BodyViewScale = uibodyscale;
     }
     private void UISimulationSpeed()
@@ -383,7 +384,7 @@ internal class Simulation
 
         if (!simulationPaused) ImGui.EndDisabled();
 
-        if (ImGui.BeginTabBar("tab_bar", ImGuiTabBarFlags.AutoSelectNewTabs))
+        if (ImGui.BeginTabBar("tab_bar", ImGuiTabBarFlags.AutoSelectNewTabs | ImGuiTabBarFlags.FittingPolicyScroll))
         {
             for (int i = 0; i < bodies.Count; i++)
             {
@@ -401,7 +402,7 @@ internal class Simulation
                     UITooltip("This just determines whether it emits light or not");
 
                     float uimass = bodies[i].Mass;
-                    ImGui.SliderFloat("Mass", ref uimass, 1E23f, 1E31f, "%.5e kg", ImGuiSliderFlags.Logarithmic);
+                    ImGui.SliderFloat("Mass", ref uimass, 1E22f, 1E31f, "%.5e kg", ImGuiSliderFlags.Logarithmic);
                     bodies[i].Mass = uimass;
 
                     float uiradius = bodies[i].Radius;
@@ -425,7 +426,11 @@ internal class Simulation
                     UITooltip("Can only be adjusted when the simulation is paused");
 
                     if (ImGui.Button("Set orbit"))
+                    {
                         ImGui.OpenPopup("Set Orbit");
+                        currentOrbitalElements = new OrbitalElements(1E11f, 0f, 0f, 0f, 0f);
+                        currentOrbitAroundIndex = -1;
+                    }
                     UITooltip("Can only be used when the simulation is paused");
                     UISetOrbit(bodies[i]);
 
@@ -449,29 +454,42 @@ internal class Simulation
         ImGui.SetNextWindowSize(new System.Numerics.Vector2(350, screenHeight/2), ImGuiCond.Always);
         if (ImGui.BeginPopupModal("Set Orbit", ref isOpen , ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse))
         {
-            string[] orbitAroundOptions = new string[bodies.Count - 1];
-            int i = 0;
-            foreach (Body body in bodies)
+            string[] orbitAroundOptions = new string[bodies.Count];
+            for (int i = 0; i < bodies.Count; i++)
             {
-                if (body != orbitingBody)
-                {
-                    orbitAroundOptions[i] = body.Name;
-                    i++;
-                }
+                orbitAroundOptions[i] = bodies[i].Name;
             }
-            ImGui.Combo("Orbit around", ref orbitAroundIndex, orbitAroundOptions, orbitAroundOptions.Length);
+            ImGui.Combo("Orbit around", ref currentOrbitAroundIndex, orbitAroundOptions, orbitAroundOptions.Length);
+            if (currentOrbitAroundIndex == bodies.IndexOf(orbitingBody))
+            {
+                currentOrbitAroundIndex = -1;
+            }
 
-            float radius
+            ImGui.SliderFloat("Semi-major axis", ref currentOrbitalElements.SemiMajorAxis, 0, 1E12f, "%.4e m");
+            ImGui.SliderFloat("Eccentricity", ref currentOrbitalElements.Eccentricity, 0f, 0.99f);
+            ImGui.SliderAngle("Inclination", ref currentOrbitalElements.Inclination);
+            ImGui.SliderAngle("Longitude of the ascending node", ref currentOrbitalElements.AscendingNodeLongitude);
+            ImGui.SliderAngle("Argument of periapsis", ref currentOrbitalElements.PeriapsisArgument);
 
+            if (currentOrbitAroundIndex != -1)
+                renderer.AddOrbit(currentOrbitalElements, bodies[currentOrbitAroundIndex]);
+
+            if (currentOrbitAroundIndex == -1)
+                ImGui.BeginDisabled();
             if (ImGui.Button("Confirm"))
             {
+                orbitingBody.SetOrbit(bodies[currentOrbitAroundIndex], currentOrbitalElements);
                 ImGui.CloseCurrentPopup();
             }
+            if (currentOrbitAroundIndex == -1)
+                ImGui.EndDisabled();
 
             ImGui.SameLine();
 
             if (ImGui.Button("Cancel"))
                 ImGui.CloseCurrentPopup();
+
+            ImGui.TextWrapped("This will only be accurate if the body being orbited around is stationary and has a much greater mass than the orbiting body");
             ImGui.EndPopup();
 
         }
