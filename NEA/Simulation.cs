@@ -99,7 +99,7 @@ internal class Simulation
 
             List<int> bodiesToDelete = new List<int>();
             foreach (Body body in bodies)
-                bodiesToDelete.Add(body.GetCollidingBody(ref bodies));
+                bodiesToDelete.Add(body.GetCollidingBodyID(ref bodies));
             foreach (int id in bodiesToDelete)
                 DeleteBodyByID(id);
         }

@@ -29,7 +29,7 @@ internal class Body
         IsStar = isStar;
         id = nextId;
         nextId++;
-        Path = new CircularArray<vec3>(1000);
+        Path = new CircularArray<vec3>(3000);
     }
     public void UpdatePos(float deltaTime)
     {
@@ -63,7 +63,7 @@ internal class Body
         for (int i = 0; i < 3; i++)
             Acc[i] = (float)(forceVecDouble[i] / Mass);
     }
-    public int GetCollidingBody(ref List<Body> bodies)
+    public int GetCollidingBodyID(ref List<Body> bodies)
     {
         float distance;
         foreach (Body body in bodies)
@@ -96,12 +96,12 @@ internal class Body
         orbitalToInertial = Rotate(orbitalToInertial, elements.AscendingNodeLongitude, new vec3(0f, 1f, 0f));
 
         vec4 cartesianPos = orbitalToInertial * orbitalPos;
-        vec4 actualVel = orbitalToInertial * orbitalVel;
+        vec4 cartesianVel = orbitalToInertial * orbitalVel;
 
         for (int i = 0; i < 3; i++)
         {
             Pos[i] = cartesianPos[i];
-            Vel[i] = actualVel[i];
+            Vel[i] = cartesianVel[i];
         }
         Path.Clear();
     }

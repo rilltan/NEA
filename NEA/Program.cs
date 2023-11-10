@@ -14,6 +14,7 @@ class Program
         Glfw.WindowHint(Hint.ContextVersionMinor, 3);
         Glfw.WindowHint(Hint.OpenglProfile, Profile.Core);
         Glfw.WindowHint(Hint.Resizable, false);
+        Glfw.WindowHint(Hint.RefreshRate, 60);
         Window window = Glfw.CreateWindow(screenWidth, screenHeight, title, GLFW.Monitor.None, GLFW.Window.None);
         Glfw.MakeContextCurrent(window);
         Import(Glfw.GetProcAddress);
