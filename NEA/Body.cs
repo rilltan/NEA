@@ -1,5 +1,6 @@
 ﻿using NEA;
 using System;
+using System.Runtime.ConstrainedExecution;
 using static MathsOperations;
 
 internal class Body
@@ -87,7 +88,7 @@ internal class Body
         float sma = elements.SemiMajorAxis;
         float ecc = elements.Eccentricity;
 
-        vec4 orbitalPos = new vec4(sma * (1 - ecc), 0f, 0f, 0f);
+        vec4 orbitalPos = new vec4(sma * (1 - ecc), 0f, 0f, 1f);
         float orbitalSpeedZ = (float)Math.Sqrt(G * primary.Mass * sma) / (sma * (1f - ecc)) * (float)Math.Sqrt(1 - ecc * ecc);
         vec4 orbitalVel = new vec4(0f, 0f, orbitalSpeedZ, 0f);
 
@@ -96,6 +97,7 @@ internal class Body
         orbitalToInertial = Rotate(orbitalToInertial, elements.AscendingNodeLongitude, new vec3(0f, 1f, 0f));
 
         vec4 cartesianPos = orbitalToInertial * orbitalPos;
+        cartesianPos = Translate(new mat4(1f), primary.Pos) * cartesianPos;
         vec4 cartesianVel = orbitalToInertial * orbitalVel;
 
         for (int i = 0; i < 3; i++)
