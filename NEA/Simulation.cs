@@ -19,6 +19,7 @@ internal class Simulation
     private MouseButton[] mouseButtonsToCheck = new MouseButton[] { MouseButton.Left, MouseButton.Right, MouseButton.Middle };
     private Dictionary<MouseButton,bool> currentMouseButtons, prevMouseButtons;
     private double cursorX, cursorY, prevCursorX, prevCursorY;
+    int cursorDisabledCooldown;
     private float currentTime, prevTime, deltaTime;
     private int frameNumber;
     private bool renderVelocityMarkers, renderForceMarkers, renderPaths, renderGrid;
@@ -182,8 +183,15 @@ internal class Simulation
 
         if (currentMouseButtons[MouseButton.Right])
         {
-            Glfw.SetInputMode(window, InputMode.Cursor, (int)CursorMode.Disabled);
-            if (prevCursorX != cursorX || prevCursorY != cursorY)
+            if (!prevMouseButtons[MouseButton.Right])
+            {
+                Glfw.SetInputMode(window, InputMode.Cursor, (int)CursorMode.Disabled);
+                cursorDisabledCooldown = 2;
+            }
+            // due to a bug in glfw, when setting the cursor to disabled the position jumps unpredictably, so i need
+            // to set a cooldown so that i only change the camera angle after a couple of frames
+            cursorDisabledCooldown -= 1;
+            if (cursorDisabledCooldown < 0 && (prevCursorX != cursorX || prevCursorY != cursorY))
                 camera.ChangeAngles((float)(cursorX - prevCursorX), (float)(prevCursorY - cursorY));
         }
         else if (prevMouseButtons[MouseButton.Right])
