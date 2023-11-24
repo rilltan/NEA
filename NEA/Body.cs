@@ -90,7 +90,7 @@ internal class Body
 
         vec4 orbitalPos = new vec4(sma * (1 - ecc), 0f, 0f, 1f);
         float orbitalSpeedZ = (float)Math.Sqrt(G * primary.Mass * sma) / (sma * (1f - ecc)) * (float)Math.Sqrt(1 - ecc * ecc);
-        vec4 orbitalVel = new vec4(0f, 0f, orbitalSpeedZ, 0f);
+        vec4 orbitalVel = new vec4(0f, 0f, orbitalSpeedZ, 1f);
 
         mat4 orbitalToInertial = Rotate(new mat4(1f), elements.PeriapsisArgument, new vec3(0f, 1f, 0f));
         orbitalToInertial = Rotate(orbitalToInertial, elements.Inclination, new vec3(1f, 0f, 0f));
@@ -99,6 +99,7 @@ internal class Body
         vec4 cartesianPos = orbitalToInertial * orbitalPos;
         cartesianPos = Translate(new mat4(1f), primary.Pos) * cartesianPos;
         vec4 cartesianVel = orbitalToInertial * orbitalVel;
+        cartesianVel = Translate(new mat4(1f), primary.Vel) * cartesianVel;
 
         for (int i = 0; i < 3; i++)
         {
