@@ -505,7 +505,7 @@ internal class Simulation
                 ImGui.CloseCurrentPopup();
             }
 
-            ImGui.TextWrapped("This will only be accurate if the body being orbited around is stationary and has a much greater mass than the orbiting body");
+            ImGui.TextWrapped("This will only be accurate if the body being orbited around has a much greater mass than the orbiting body");
 
             ImGui.EndPopup();
         }
