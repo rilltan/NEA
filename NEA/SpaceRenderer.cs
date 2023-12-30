@@ -22,16 +22,16 @@ internal class SpaceRenderer
     private OrbitalElements OrbitData;
     private bool ShouldDrawOrbit;
 
-    public int BodyViewScale { get; set; }
-    public float VelocityMarkerScale { get; set; }
-    public float ForceMarkerScale { get; set; }
+    public int BodyViewScale;
+    public float VelocityMarkerScale;
+    public float ForceMarkerScale;
     public SpaceRenderer(int windowX, int windowY, int width, int height)
     {
         WindowX = windowX;
         WindowY = windowY;
         Width = width;
         Height = height;
-        
+
         StandardShader = new Shader(ShaderCode.vertexStandard, ShaderCode.fragmentStandard);
         PlanetShader = new Shader(ShaderCode.vertexPlanet, ShaderCode.fragmentPlanet);
         GridShader = new Shader(ShaderCode.vertexGrid, ShaderCode.fragmentGrid);

@@ -10,14 +10,14 @@ internal class Body
 
     public int id { get; private set; }
     public CircularArray<vec3> Path { get; private set; }
-    public vec3 Acc { get; }
-    public vec3 Colour { get; set; }
-    public float Mass { get; set; }
-    public string Name { get; set; }
-    public vec3 Pos { get; set; }
-    public bool IsStar { get; set; }
-    public float Radius { get; set; }
-    public vec3 Vel { get; set; }
+    public vec3 Acc { get; private set; }
+    public vec3 Colour;
+    public float Mass;
+    public string Name;
+    public vec3 Pos;
+    public bool IsStar;
+    public float Radius;
+    public vec3 Vel;
     public Body(vec3 pos, vec3 vel, vec3 colour, float mass, float radius, string name, bool isStar = false)
     {
         Pos = pos;
@@ -26,7 +26,7 @@ internal class Body
         Mass = mass;
         Radius = radius;
         Colour = colour;
-        Acc = new vec3(0f,0f,0f);
+        Acc = new vec3(0f, 0f, 0f);
         IsStar = isStar;
         id = nextId;
         nextId++;
@@ -35,7 +35,7 @@ internal class Body
     public void UpdatePos(float deltaTime)
     {
         for (int i = 0; i < 3; i++)
-            Pos[i] += Vel[i]*deltaTime + 0.5f*Acc[i]*deltaTime*deltaTime;
+            Pos[i] += Vel[i] * deltaTime + 0.5f * Acc[i] * deltaTime * deltaTime;
     }
     public void UpdatePath()
     {
@@ -53,9 +53,9 @@ internal class Body
             {
                 distanceVec = body.Pos - Pos;
                 distanceMagnitude = distanceVec.GetMagnitude();
-                forceMagnitude = G * Mass * body.Mass / (distanceMagnitude*distanceMagnitude);
+                forceMagnitude = G * Mass * body.Mass / (distanceMagnitude * distanceMagnitude);
                 for (int i = 0; i < 3; i++)
-                    forceVecDouble[i] += forceMagnitude * (distanceVec[i]/distanceMagnitude);
+                    forceVecDouble[i] += forceMagnitude * (distanceVec[i] / distanceMagnitude);
             }
         }
 

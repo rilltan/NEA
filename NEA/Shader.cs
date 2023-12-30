@@ -10,7 +10,7 @@ internal unsafe class Shader
         int success = 0;
         glShaderSource(vertex, vertexCode);
         glCompileShader(vertex);
-        glGetShaderiv(vertex, GL_COMPILE_STATUS, & success);
+        glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
         if (success == GL_FALSE)
         {
             Console.WriteLine("Vertex shader failure:");

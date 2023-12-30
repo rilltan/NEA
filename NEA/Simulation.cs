@@ -17,7 +17,7 @@ internal class Simulation
 
     private int focussedBodyID;
     private MouseButton[] mouseButtonsToCheck = new MouseButton[] { MouseButton.Left, MouseButton.Right, MouseButton.Middle };
-    private Dictionary<MouseButton,bool> currentMouseButtons, prevMouseButtons;
+    private Dictionary<MouseButton, bool> currentMouseButtons, prevMouseButtons;
     private double cursorX, cursorY, prevCursorX, prevCursorY;
     int cursorDisabledCooldown;
     private float currentTime, prevTime, deltaTime;
@@ -104,7 +104,7 @@ internal class Simulation
             foreach (int id in bodiesToDelete)
                 DeleteBodyByID(id);
         }
-        
+
         if (focussedBodyID != -1)
         {
             var focussedBody = bodies.Find(body => body.id == focussedBodyID);
@@ -148,11 +148,11 @@ internal class Simulation
         Glfw.SwapBuffers(window);
         Glfw.PollEvents();
     }
-    private void DeleteBodyByListIndex(int index)
+    private void DeleteBodyByListIndex(int id)
     {
-        if (bodies[index].id == focussedBodyID)
+        if (bodies[id].id == focussedBodyID)
             focussedBodyID = -1;
-        bodies.RemoveAt(index);
+        bodies.RemoveAt(id);
     }
     private void DeleteBodyByID(int id)
     {
@@ -463,8 +463,8 @@ internal class Simulation
     {
         bool isOpen = true;
         ImGui.SetNextWindowPos(new System.Numerics.Vector2(screenWidth - 200, screenHeight / 2), ImGuiCond.Always, new System.Numerics.Vector2(0.5f, 0.5f));
-        ImGui.SetNextWindowSize(new System.Numerics.Vector2(350, screenHeight/2), ImGuiCond.Always);
-        if (ImGui.BeginPopupModal("Set Orbit", ref isOpen , ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar))
+        ImGui.SetNextWindowSize(new System.Numerics.Vector2(350, screenHeight / 2), ImGuiCond.Always);
+        if (ImGui.BeginPopupModal("Set Orbit", ref isOpen, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar))
         {
             string[] orbitAroundOptions = new string[bodies.Count];
             for (int i = 0; i < bodies.Count; i++)
@@ -505,7 +505,7 @@ internal class Simulation
                 ImGui.CloseCurrentPopup();
             }
 
-            ImGui.TextWrapped("This will only be accurate if the body being orbited around has a much greater mass than the orbiting body");
+            ImGui.TextWrapped("This will only be accurate if the body being orbited around is stationary and has a much greater mass than the orbiting body");
 
             ImGui.EndPopup();
         }

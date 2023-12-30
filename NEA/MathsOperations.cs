@@ -29,17 +29,17 @@ internal static class MathsOperations
         float cb = 1 - ca;
         float s = (float)Math.Sin(angle);
 
-        result[0] = x*x*cb + ca;
-        result[1] = x*y*cb - z*s;
-        result[2] = x*z*cb + y*s;
+        result[0] = x * x * cb + ca;
+        result[1] = x * y * cb - z * s;
+        result[2] = x * z * cb + y * s;
         result[3] = 0;
-        result[4] = y*x*cb + z*s;
-        result[5] = y*y*cb + ca;
-        result[6] = y*z*cb - x*s;
+        result[4] = y * x * cb + z * s;
+        result[5] = y * y * cb + ca;
+        result[6] = y * z * cb - x * s;
         result[7] = 0;
-        result[8] = z*x*cb - y*s;
-        result[9] = z*y*cb + x*s;
-        result[10] = z*z*cb + ca;
+        result[8] = z * x * cb - y * s;
+        result[9] = z * y * cb + x * s;
+        result[10] = z * z * cb + ca;
         result[11] = 0;
         result[12] = 0;
         result[13] = 0;
@@ -147,10 +147,10 @@ internal static class MathsOperations
     }
     public static float[] GenerateGridVertices(int rows)
     {
-        float[] result = new float[12 * (rows-1)];
+        float[] result = new float[12 * (rows - 1)];
         float x;
         float z;
-        for (int i = 0; i <  rows-1; i++)
+        for (int i = 0; i < rows - 1; i++)
         {
             z = 1f - 2f * (i + 1f) / (rows);
             result[6 * i] = 1f;
@@ -162,10 +162,10 @@ internal static class MathsOperations
             result[6 * i + 5] = z;
         }
 
-        for (int i = 0; i < rows-1; i++)
+        for (int i = 0; i < rows - 1; i++)
         {
             x = 1f - 2f * (i + 1f) / (rows);
-            result[(rows-1) * 6 + 6 * i] = x;
+            result[(rows - 1) * 6 + 6 * i] = x;
             result[(rows - 1) * 6 + 6 * i + 1] = 0f;
             result[(rows - 1) * 6 + 6 * i + 2] = 1f;
 

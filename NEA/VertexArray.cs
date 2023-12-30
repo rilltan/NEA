@@ -5,7 +5,7 @@ internal class GLVertexArray
 {
     private uint vaoID;
     private uint vboID;
-    public int Length { get; }
+    public int Length { get; private set; }
     public GLVertexArray(float[] vertices, int[] attributeLengths)
     {
         Length = vertices.Length / attributeLengths.Sum();
