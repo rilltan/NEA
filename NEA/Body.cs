@@ -5,7 +5,7 @@ using static MathsOperations;
 
 internal class Body
 {
-    private static double G = 6.6743E-11;
+    private static float G = 6.6743E-11f;
     private static int nextId = 0;
 
     public int id { get; private set; }
@@ -43,26 +43,26 @@ internal class Body
     }
     public void UpdateVelAndAcc(ref List<Body> bodies, float deltaTime)
     {
-        double[] forceVecDouble = new double[3];
-        double forceMagnitude;
+        vec3 newAcc = new vec3(0f);
+        float accMagnitude;
         vec3 distanceVec;
-        float distanceMagnitude;
+        float distance;
         foreach (Body body in bodies)
         {
             if (body.id != id)
             {
                 distanceVec = body.Pos - Pos;
-                distanceMagnitude = distanceVec.GetMagnitude();
-                forceMagnitude = G * Mass * body.Mass / (distanceMagnitude * distanceMagnitude);
+                distance = distanceVec.GetMagnitude();
+                accMagnitude = G * body.Mass / (distance * distance);
                 for (int i = 0; i < 3; i++)
-                    forceVecDouble[i] += forceMagnitude * (distanceVec[i] / distanceMagnitude);
+                    newAcc[i] += accMagnitude * (distanceVec[i] / distance);
             }
         }
 
         for (int i = 0; i < 3; i++)
-            Vel[i] += 0.5f * (Acc[i] + (float)(forceVecDouble[i] / Mass)) * deltaTime;
+            Vel[i] += 0.5f * (Acc[i] + newAcc[i]) * deltaTime;
         for (int i = 0; i < 3; i++)
-            Acc[i] = (float)(forceVecDouble[i] / Mass);
+            Acc[i] = newAcc[i];
     }
     public int GetCollidingBodyID(ref List<Body> bodies)
     {
